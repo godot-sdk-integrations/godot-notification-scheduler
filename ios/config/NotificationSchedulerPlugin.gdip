@@ -1,0 +1,23 @@
+;
+; © 2024-present https://github.com/cengiz-pz
+;
+
+[config]
+name="NotificationSchedulerPlugin"
+binary="NotificationSchedulerPlugin.a"
+
+initialization="notification_scheduler_plugin_init"
+deinitialization="notification_scheduler_plugin_deinit"
+
+[dependencies]
+linked=[]
+embedded=[]
+system=[]
+
+capabilities=[]
+
+files=[]
+
+linker_flags=[]
+
+[plist]

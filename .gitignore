@@ -1,0 +1,18 @@
+#
+# © 2024-present https://github.com/cengiz-pz
+#
+
+demo/addons
+demo/android
+demo/ios
+export.cfg
+
+# Android Studio/IntelliJ
+.idea/
+
+# Godot 4+ specific ignores
+demo/.godot/*
+!demo/.godot/uid_cache.bin
+
+# Godot-specific ignores
+.import/
