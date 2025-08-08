@@ -40,6 +40,10 @@ SUPPORTED_GODOT_VERSIONS=()
 while IFS= read -r line; do
 	SUPPORTED_GODOT_VERSIONS+=($line)
 done < <($SCRIPT_DIR/get_config_property.sh -a valid_godot_versions)
+EXTRA_PROPERTIES=()
+while IFS= read -r line; do
+	EXTRA_PROPERTIES+=($line)
+done < <($SCRIPT_DIR/get_config_property.sh -a extra_properties)
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
 do_clean=false
@@ -110,6 +114,12 @@ function echo_yellow()
 function echo_blue()
 {
 	$ROOT_DIR/script/echocolor.sh -b "$1"
+}
+
+
+function echo_green()
+{
+	$ROOT_DIR/script/echocolor.sh -g "$1"
 }
 
 
@@ -291,6 +301,81 @@ function merge_string_array() {
 }
 
 
+function replace_extra_properties() {
+	local file_path="$1"
+	local -a prop_array=("${@:2}")
+
+	# Check if file exists and is readable
+	if [[ ! -f "$file_path" || ! -r "$file_path" ]]; then
+		display_error "Error: File '$file_path' does not exist or is not readable"
+		exit 1
+	fi
+
+	# Check if file is empty
+	if [[ ! -s "$file_path" ]]; then
+		echo_blue "Debug: File is empty, no replacements possible"
+		return 0
+	fi
+
+	# Check if prop_array is empty
+	if [[ ${#prop_array[@]} -eq 0 ]]; then
+		echo_blue "No extra properties provided for replacement in file: $file_path"
+		return 0
+	fi
+
+	# Log the file being processed
+	echo_blue "Processing extra properties: ${prop_array[*]} in file: $file_path"
+
+	# Process each key:value pair
+	for prop in "${prop_array[@]}"; do
+		# Split key:value pair
+		local key="${prop%%:*}"
+		local value="${prop#*:}"
+
+		# Validate key:value pair
+		if [[ -z "$key" || -z "$value" ]]; then
+			display_error "Error: Invalid key:value pair '$prop'"
+			exit 1
+		fi
+
+		# Create pattern with @ delimiters
+		local pattern="@${key}@"
+
+		# Escape special characters for grep and sed, including dots
+		local escaped_pattern
+		escaped_pattern=$(printf '%s' "$pattern" | sed 's/[][\\^$.*]/\\&/g' | sed 's/\./\\./g')
+
+		# Count occurrences of the pattern before replacement
+		local count
+		count=$(LC_ALL=C grep -o "$escaped_pattern" "$file_path" 2>grep_error.log | wc -l | tr -d '[:space:]')
+		local grep_status=$?
+		if [[ $grep_status -ne 0 && $grep_status -ne 1 ]]; then
+			echo_blue "Debug: grep exit status: $grep_status"
+			echo_blue "Debug: grep error output: $(cat grep_error.log)"
+			display_error "Error: Failed to count occurrences of '$pattern' in '$file_path'"
+			exit 1
+		fi
+
+		# Debug: Check if pattern exists
+		if [[ $count -eq 0 ]]; then
+			echo_blue "No occurrences of '$pattern' found in '$file_path'"
+		else
+			echo_blue "Found $count occurrences of '$pattern' in '$file_path'"
+		fi
+
+		# Replace all occurrences in file, use empty backup extension for macOS
+		if ! LC_ALL=C sed -i '' "s|$escaped_pattern|$value|g" "$file_path" 2>sed_error.log; then
+			echo_blue "Debug: sed error output: $(cat sed_error.log)"
+			display_error "Error: Failed to replace '$pattern' in '$file_path'"
+			exit 1
+		fi
+	done
+
+	# Clean up temporary files
+	rm -f grep_error.log sed_error.log
+}
+
+
 function create_zip_archive()
 {
 	if [[ ! -f "$GODOT_DIR/GODOT_VERSION" ]]
@@ -316,13 +401,7 @@ function create_zip_archive()
 		rm $BUILD_DIR/release/$file_name
 	fi
 
-	tmp_directory=$BUILD_DIR/.tmp_zip
-
-	if [[ -d "$tmp_directory" ]]
-	then
-		display_status "removing existing staging directory $tmp_directory"
-		rm -r $tmp_directory
-	fi
+	tmp_directory=$(mktemp -d)
 
 	display_status "preparing staging directory $tmp_directory"
 
@@ -342,7 +421,7 @@ function create_zip_archive()
 
 		for file in "$tmp_directory/addons/$PLUGIN_NAME"/*.{gd,cfg}; do
 			[[ -e "$file" ]] || continue
-			echo_blue "Editing: $file"
+			echo_green "Editing: $file"
 
 			# Escape variables to handle special characters
 			ESCAPED_PLUGIN_NAME=$(printf '%s' "$PLUGIN_NAME" | sed 's/[\/&]/\\&/g')
@@ -364,6 +443,8 @@ function create_zip_archive()
 				s|@iosEmbeddedFrameworks@|$ESCAPED_IOS_EMBEDDED_FRAMEWORKS|g;
 				s|@iosLinkerFlags@|$ESCAPED_IOS_LINKER_FLAGS|g
 			" "$file"
+
+			replace_extra_properties $file ${EXTRA_PROPERTIES[@]}
 		done
 	else
 		display_error "Error: '$ADDON_DIR' not found."

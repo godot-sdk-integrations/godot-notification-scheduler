@@ -39,33 +39,32 @@ fi
 PROPERTY_VALUE=$(grep -E "^${PROPERTY_NAME}=" "$CONFIG_FILE" | cut -d'=' -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 if [[ -z "$PROPERTY_VALUE" ]]; then
-	echo "Property '$PROPERTY_NAME' not found or empty in '$CONFIG_FILE'."
-	exit 1
-fi
-
-# Output logic
-if $AS_ARRAY; then
-	IFS=',' read -r -a array <<< "$PROPERTY_VALUE"
-	if $SINGLE_LINE_ARRAY; then
-		if $QUOTE_ITEMS; then
-			printf ' "%s"' "${array[@]}"
-		else
-			printf ' %s' "${array[@]}"
-		fi
-		echo	# newline
-	else
-		for item in "${array[@]}"; do
-			if $QUOTE_ITEMS; then
-				echo "\"$item\""
-			else
-				echo "$item"
-			fi
-		done
-	fi
+	echo ""	# property was empty or not found in the config file
 else
-	if $QUOTE_ITEMS; then
-		echo "\"$PROPERTY_VALUE\""
+	# Output logic
+	if $AS_ARRAY; then
+		IFS=',' read -r -a array <<< "$PROPERTY_VALUE"
+		if $SINGLE_LINE_ARRAY; then
+			if $QUOTE_ITEMS; then
+				printf ' "%s"' "${array[@]}"
+			else
+				printf ' %s' "${array[@]}"
+			fi
+			echo	# newline
+		else
+			for item in "${array[@]}"; do
+				if $QUOTE_ITEMS; then
+					echo "\"$item\""
+				else
+					echo "$item"
+				fi
+			done
+		fi
 	else
-		echo "$PROPERTY_VALUE"
+		if $QUOTE_ITEMS; then
+			echo "\"$PROPERTY_VALUE\""
+		else
+			echo "$PROPERTY_VALUE"
+		fi
 	fi
 fi

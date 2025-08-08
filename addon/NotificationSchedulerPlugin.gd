@@ -142,6 +142,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 
 
 class IosExportPlugin extends EditorExportPlugin:
+
 	var _plugin_name = PLUGIN_NAME
 
 

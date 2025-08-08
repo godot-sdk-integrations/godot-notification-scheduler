@@ -95,7 +95,8 @@ _Note: `create_notification_channel()` method returns `OK` if channel has been c
 	- _The [Deeplink Plugin](https://github.com/cengiz-pz/godot-android-deeplink-plugin) can then be used to process the URI data._
 
 ### <img src="addon/icon.png" width="18"> Other Available Methods
-- `cancel(notification_id)`
+- `cancel(notification_id)` - cancel a notification before it is delivered.
+- `set_badge_count()` - set the number that appears on the app icon. (Set to 0 to remove.)
 - `get_notification_id()` - alternative way to get the ID of the last opened notification.
 
 <br/><br/>

@@ -28,6 +28,13 @@
 
 // TO GODOT
 
++ (String)nsStringToGodotString:(NSString *)nsString {
+	if (!nsString) {
+		return String();
+	}
+	return String([nsString UTF8String]);
+}
+
 + (Dictionary) nsDictionaryToGodotDictionary:(NSDictionary*) nsDictionary {
 	Dictionary dictionary = Dictionary();
 
@@ -73,17 +80,47 @@
 + (Dictionary) nsUrlToGodotDictionary:(NSURL*) url {
 	Dictionary dictionary;
 
-	dictionary["scheme"] = [url.scheme UTF8String];
-	dictionary["user"] = [url.user UTF8String];
-	dictionary["password"] = [url.password UTF8String];
-	dictionary["host"] = [url.host UTF8String];
+	// Handle nil URL case
+	if (url == nil) {
+		return dictionary; // Return empty dictionary
+	}
+
+	dictionary["scheme"] = String([url.scheme UTF8String] ?: "");
+	dictionary["user"] = String([url.user UTF8String] ?: "");
+	dictionary["password"] = String([url.password UTF8String] ?: "");
+	dictionary["host"] = String([url.host UTF8String] ?: "");
 	dictionary["port"] = [url.port intValue];
-	dictionary["path"] = [url.path UTF8String];
-	dictionary["pathExtension"] = [url.pathExtension UTF8String];
-	dictionary["pathComponents"] = url.pathComponents;
-	dictionary["parameterString"] = [url.parameterString UTF8String];
-	dictionary["query"] = [url.query UTF8String];
-	dictionary["fragment"] = [url.fragment UTF8String];
+	dictionary["path"] = String([url.path UTF8String] ?: "");
+	dictionary["pathExtension"] = String([url.pathExtension UTF8String] ?: "");
+	
+	// Convert pathComponents to Godot Array
+	Array godotArray;
+	if (url.pathComponents != nil) {
+		for (NSString *component in url.pathComponents) {
+			godotArray.push_back(String([component UTF8String]));
+		}
+	}
+	dictionary["pathComponents"] = godotArray;
+
+	// Manually extract parameters from path
+	NSString *path = url.path ?: @"";
+	NSString *parameterString = @"";
+	NSRange semicolonRange = [path rangeOfString:@";"];
+	if (semicolonRange.location != NSNotFound) {
+		parameterString = [path substringFromIndex:semicolonRange.location + 1];
+		// Trim query or fragment if present
+		NSRange queryOrFragment = [parameterString rangeOfString:@"?"];
+		if (queryOrFragment.location == NSNotFound) {
+			queryOrFragment = [parameterString rangeOfString:@"#"];
+		}
+		if (queryOrFragment.location != NSNotFound) {
+			parameterString = [parameterString substringToIndex:queryOrFragment.location];
+		}
+	}
+	dictionary["parameterString"] = String([parameterString UTF8String]);
+
+	dictionary["query"] = String([url.query UTF8String] ?: "");
+	dictionary["fragment"] = String([url.fragment UTF8String] ?: "");
 
 	return dictionary;
 }

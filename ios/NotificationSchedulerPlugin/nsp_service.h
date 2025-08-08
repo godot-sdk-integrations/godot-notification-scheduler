@@ -5,10 +5,13 @@
 #ifndef nsp_delegate_h
 #define nsp_delegate_h
 
+#import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 
 
-@interface NSPDelegate : NSObject<UNUserNotificationCenterDelegate>
+@interface NSPService : UIResponder<UIApplicationDelegate, UNUserNotificationCenterDelegate>
+
++ (instancetype) shared;
 
 // Asks the delegate to process the user’s response to a delivered notification.
 - (void) userNotificationCenter:(UNUserNotificationCenter*) center

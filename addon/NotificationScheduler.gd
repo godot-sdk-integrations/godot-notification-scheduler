@@ -55,11 +55,16 @@ func create_notification_channel(a_notification_channel: NotificationChannel) ->
 	return __result
 
 
-func schedule(a_notification_data: NotificationData) -> void:
+func schedule(a_notification_data: NotificationData) -> Error:
+	var __result: Error
+
 	if _plugin_singleton:
-		_plugin_singleton.schedule(a_notification_data.get_raw_data())
+		__result = _plugin_singleton.schedule(a_notification_data.get_raw_data())
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+		__result == ERR_UNAVAILABLE
+
+	return __result
 
 
 func cancel(a_notification_id: int) -> void:

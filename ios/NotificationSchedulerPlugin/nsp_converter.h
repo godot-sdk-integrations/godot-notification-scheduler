@@ -6,6 +6,7 @@
 #define nsp_converter_h
 
 #import <Foundation/Foundation.h>
+#include "core/string/ustring.h"
 #include "core/object/class_db.h"
 
 
@@ -17,6 +18,7 @@
 
 
 // To Godot
++ (String)nsStringToGodotString:(NSString *)nsString;
 + (Dictionary) nsDictionaryToGodotDictionary:(NSDictionary*) nsDictionary;
 + (Dictionary) nsUrlToGodotDictionary:(NSURL*) status;
 
