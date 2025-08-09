@@ -38,14 +38,6 @@ static NSPServiceInitializer initializer;
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-	// Check singleton availability
-	NotificationSchedulerPlugin *plugin = NotificationSchedulerPlugin::get_singleton();
-	if (!plugin) {
-		NSLog(@"NSPService: NotificationSchedulerPlugin singleton not initialized during app launch");
-	} else {
-		NSLog(@"NSPService: NotificationSchedulerPlugin singleton initialized successfully");
-	}
-
 	// Log launch options for debugging
 	NSLog(@"NSPService: Launch options: %@", launchOptions);
 
@@ -67,11 +59,11 @@ static NSPServiceInitializer initializer;
 		NSLog(@"NSPService: Singleton available, emitting signal for notification ID: %@", notificationId);
 		// Defer signal emission to ensure Godot environment is ready
 		if ([actionIdentifier isEqualToString:UNNotificationDismissActionIdentifier]) {
-			plugin->call_deferred("emit_signal", NOTIFICATION_DISMISSED_SIGNAL, [notificationId intValue]);
-			plugin->call_deferred("handle_completion", [notificationId UTF8String]);
+			plugin->emit_signal(NOTIFICATION_DISMISSED_SIGNAL, [notificationId intValue]);
+			plugin->handle_completion(notificationId);
 		} else if ([actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
-			plugin->call_deferred("emit_signal", NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
-			plugin->call_deferred("handle_completion", [notificationId UTF8String]);
+			plugin->emit_signal(NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
+			plugin->handle_completion(notificationId);
 		} else {
 			NSLog(@"NSPService: ERROR: Unexpected action identifier: %@", actionIdentifier);
 		}
@@ -85,25 +77,25 @@ static NSPServiceInitializer initializer;
 // Queue notification response
 - (void)queueNotificationResponseWithId:(NSString *)notificationId actionIdentifier:(NSString *)actionIdentifier {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	[defaults setObject:notificationId forKey:@"PendingNotificationID"];
-	[defaults setObject:actionIdentifier forKey:@"PendingActionIdentifier"];
+	[defaults setObject:notificationId forKey:PENDING_NOTIFICATION_KEY];
+	[defaults setObject:actionIdentifier forKey:PENDING_ACTION_KEY];
 	[defaults synchronize];
 	NSLog(@"NSPService: Queued notification ID: %@ with action: %@", notificationId, actionIdentifier);
 }
 
 // Handle notification when app is in foreground
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
-	   willPresentNotification:(UNNotification *)notification
-		 withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+			willPresentNotification:(UNNotification *)notification
+			withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
 	NSString *notificationId = notification.request.identifier;
 	NSLog(@"NSPService: Received foreground notification with ID: %@", notificationId);
 	completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner);
 	NotificationSchedulerPlugin *plugin = NotificationSchedulerPlugin::get_singleton();
 	if (plugin) {
-		plugin->call_deferred("emit_signal", NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
-		plugin->call_deferred("handle_completion", [notificationId UTF8String]);
+		plugin->emit_signal(NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
+		plugin->handle_completion(notificationId);
 	} else {
-		NSLog(@"NSPService: ERROR: NotificationSchedulerPlugin singleton not available for foreground notification");
+		NSLog(@"NSPService: WARNING: NotificationSchedulerPlugin singleton not available for foreground notification. Queuing.");
 		// Queue the notification response
 		[self queueNotificationResponseWithId:notificationId actionIdentifier:UNNotificationDefaultActionIdentifier];
 	}
@@ -117,8 +109,7 @@ static NSPServiceInitializer initializer;
 }
 
 // Handle in-app notification settings
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-	 openSettingsForNotification:(UNNotification *)notification {
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center openSettingsForNotification:(UNNotification *)notification {
 	NSLog(@"NSPService: Opening notification settings");
 }
 

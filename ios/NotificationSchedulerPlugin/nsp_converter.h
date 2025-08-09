@@ -18,7 +18,7 @@
 
 
 // To Godot
-+ (String)nsStringToGodotString:(NSString *)nsString;
++ (String)nsStringToGodotString:(const NSString*)nsString;
 + (Dictionary) nsDictionaryToGodotDictionary:(NSDictionary*) nsDictionary;
 + (Dictionary) nsUrlToGodotDictionary:(NSURL*) status;
 

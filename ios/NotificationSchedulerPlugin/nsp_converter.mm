@@ -28,7 +28,7 @@
 
 // TO GODOT
 
-+ (String)nsStringToGodotString:(NSString *)nsString {
++ (String)nsStringToGodotString:(const NSString*) nsString {
 	if (!nsString) {
 		return String();
 	}

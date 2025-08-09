@@ -60,11 +60,11 @@ func _create_channel() -> void:
 	if __result != OK:
 		match __result:
 			ERR_UNAVAILABLE:
-				_print_to_screen("Can't create channel because plugin not initialized!")
+				_print_to_screen("Can't create channel %s because plugin not initialized!" % channel_id)
 			ERR_ALREADY_EXISTS:
-				_print_to_screen("Can't create channel because it already exists!")
+				_print_to_screen("Can't create channel %s because it already exists!" % channel_id)
 			ERR_INVALID_DATA:
-				_print_to_screen("Can't create channel because channel data is invalid!")
+				_print_to_screen("Can't create channel %s because channel data is invalid!" % channel_id)
 
 
 func _on_button_pressed() -> void:

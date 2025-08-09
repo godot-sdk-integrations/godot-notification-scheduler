@@ -67,26 +67,38 @@ func schedule(a_notification_data: NotificationData) -> Error:
 	return __result
 
 
-func cancel(a_notification_id: int) -> void:
+func cancel(a_notification_id: int) -> Error:
+	var __result: Error
+
 	if _plugin_singleton:
-		_plugin_singleton.cancel(a_notification_id)
+		__result = _plugin_singleton.cancel(a_notification_id)
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+		__result == ERR_UNAVAILABLE
+
+	return __result
 
 
-func set_badge_count(a_count: int) -> void:
+func set_badge_count(a_count: int) -> Error:
+	var __result: Error
+
 	if _plugin_singleton:
-		_plugin_singleton.set_badge_count(a_count)
+		__result = _plugin_singleton.set_badge_count(a_count)
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+		__result == ERR_UNAVAILABLE
+
+	return __result
 
 
 func get_notification_id(a_default_value: int = DEFAULT_NOTIFICATION_ID) -> int:
 	var __result: int = a_default_value
+
 	if _plugin_singleton:
 		__result = _plugin_singleton.get_notification_id(a_default_value)
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+
 	return __result
 
 
@@ -99,18 +111,28 @@ func has_post_notifications_permission() -> bool:
 	return __result
 
 
-func request_post_notifications_permission() -> void:
+func request_post_notifications_permission() -> Error:
+	var __result: Error
+
 	if _plugin_singleton:
-		_plugin_singleton.request_post_notifications_permission()
+		__result = _plugin_singleton.request_post_notifications_permission()
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+		__result == ERR_UNAVAILABLE
+
+	return __result
 
 
-func open_app_info_settings() -> void:
+func open_app_info_settings() -> Error:
+	var __result: Error
+
 	if _plugin_singleton:
-		_plugin_singleton.open_app_info_settings()
+		__result = _plugin_singleton.open_app_info_settings()
 	else:
 		log_error("%s singleton not initialized!" % PLUGIN_SINGLETON_NAME)
+		__result == ERR_UNAVAILABLE
+
+	return __result
 
 
 func _on_initialization_completed() -> void:

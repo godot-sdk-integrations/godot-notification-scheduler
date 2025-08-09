@@ -10,20 +10,14 @@
 
 #include "core/object/class_db.h"
 
-extern const String NOTIFICATION_ID_PROPERTY;
-extern const String NOTIFICATION_CHANNEL_ID_PROPERTY;
-extern const String NOTIFICATION_TITLE_PROPERTY;
-extern const String NOTIFICATION_CONTENT_PROPERTY;
-extern const String NOTIFICATION_SMALL_ICON_NAME_PROPERTY;
-extern const String NOTIFICATION_DELAY_PROPERTY;
-extern const String NOTIFICATION_DEEPLINK_PROPERTY;
-extern const String NOTIFICATION_INTERVAL_PROPERTY;
-extern const String NOTIFICATION_BADGE_COUNT_PROPERTY;
-extern const String NOTIFICATION_RESTART_APP_PROPERTY;
+extern NSString * const NOTIFICATION_KEY_PREFIX;
+extern NSString * const NOTIFICATION_SEQUENCE_DELIMITER;
+extern NSString * const PENDING_NOTIFICATION_KEY;
+extern NSString * const PENDING_ACTION_KEY;
 
 @interface NotificationData : NSObject
 
-@property (nonatomic) NSInteger notificationId;
+@property (nonatomic, strong) NSString* notificationId;
 @property (nonatomic, strong) NSString* channelId;
 @property (nonatomic, strong) NSString* title;
 @property (nonatomic, strong) NSString* content;
@@ -35,7 +29,15 @@ extern const String NOTIFICATION_RESTART_APP_PROPERTY;
 @property (nonatomic) BOOL restartApp;
 @property (nonatomic, strong) UNMutableNotificationContent* notificationContent; // Renamed to avoid conflict
 
-- (instancetype) initWithDictionary:(Dictionary) notificationData;
+- (instancetype) initWithGodotDictionary:(Dictionary) notificationData;
+- (instancetype) initWithNsDictionary:(NSDictionary *) notificationData;
+- (NSDictionary *) toNsDictionary;
+- (NSString *) getKey;
+- (NSString *)getIdWithSequence:(int) sequence;
+- (BOOL) isSequenceOf:(NSString *) identifier;
+
++ (NSString *) toKey:(NSString *) identifier;
++ (NSString *) stripSequence:(NSString *) identifier;
 
 @end
 
