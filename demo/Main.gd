@@ -26,14 +26,19 @@ extends Node
 @onready var _badge_count_slider: HSlider = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/BadgeCountHSlider as HSlider
 @onready var _badge_count_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/ValueLabel as Label
 @onready var _badge_count_checkbox: CheckBox = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/CheckBox as CheckBox
+@onready var _id_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel as Label
 
-var _notification_id: int = 0
+var _notification_id: int = 1
 
 
 func _ready() -> void:
 	_delay_value_label.text = str(int(_delay_slider.value))
 	_interval_value_label.text = str(int(_interval_slider.value))
 	_badge_count_value_label.text = str(int(_badge_count_slider.value))
+
+	_id_value_label.text = str(_notification_id)
+	var __popup_menu: PopupMenu = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/MenuButton.get_popup()
+	__popup_menu.id_pressed.connect(_on_notification_id_selected)
 
 	notification_scheduler.initialize()
 
@@ -67,14 +72,18 @@ func _create_channel() -> void:
 				_print_to_screen("Can't create channel %s because channel data is invalid!" % channel_id)
 
 
-func _on_button_pressed() -> void:
+func _on_notification_id_selected(a_notification_id: int) -> void:
+	_notification_id = a_notification_id
+	$CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel.text = str(a_notification_id)
+
+
+func _on_send_button_pressed() -> void:
 	var __notification_data = NotificationData.new()\
-			.set_id(_get_next_notification_id())\
+			.set_id(_notification_id)\
 			.set_channel_id(channel_id)\
 			.set_title(notification_title)\
 			.set_content(notification_text)\
-			.set_delay(_delay_slider.value)\
-			.set_badge_count(roundi(_badge_count_slider.value))
+			.set_delay(_delay_slider.value)
 
 	if _interval_checkbox.button_pressed:
 		__notification_data.set_interval(_interval_slider.value)
@@ -83,16 +92,18 @@ func _on_button_pressed() -> void:
 		__notification_data.set_restart_app_option()
 
 	if _badge_count_checkbox.button_pressed:
-		__notification_data.set_badge_count(_badge_count_slider.value)
+		__notification_data.set_badge_count(roundi(_badge_count_slider.value))
 
-	_print_to_screen("Scheduling notification with a delay of %d seconds" % int(_delay_slider.value))
+	_print_to_screen("Scheduling notification %d with an interval of %d seconds and a delay of %d seconds"
+			% [_notification_id, int(_interval_slider.value), int(_delay_slider.value)])
 
 	notification_scheduler.schedule(__notification_data)
 
 
-func _get_next_notification_id() -> int:
-	_notification_id += 1
-	return _notification_id
+func _on_cancel_button_pressed() -> void:
+	_print_to_screen("Canceling notification %d" % _notification_id)
+
+	notification_scheduler.cancel(_notification_id)
 
 
 func _print_to_screen(a_message: String, a_is_error: bool = false) -> void:

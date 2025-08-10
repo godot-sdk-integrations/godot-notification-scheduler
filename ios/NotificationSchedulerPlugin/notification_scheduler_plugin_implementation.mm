@@ -301,7 +301,7 @@ Error NotificationSchedulerPlugin::cancel(int notificationId) {
 	NSString* key = [NotificationData toKey:baseId];
 	NSDictionary* notificationDict = [defaults dictionaryForKey:key];
 	if (notificationDict == nil) {
-		NSLog(@"NotificationSchedulerPlugin::cancel: ERROR: Notification with ID '%d' & key '%@' not found!", notificationId, key);
+		NSLog(@"NotificationSchedulerPlugin::cancel: ERROR: Notification with ID '%d' & key '%@' not found in plugin's cache!", notificationId, key);
 		return FAILED;
 	}
 
@@ -309,25 +309,40 @@ Error NotificationSchedulerPlugin::cancel(int notificationId) {
 
 	UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
 	if (notificationData.interval >= 60) {
-		// Cancel all notifications with prefix baseId_
+		// Cancel all pending notifications with prefix baseId_
 		[center getPendingNotificationRequestsWithCompletionHandler:^(NSArray<UNNotificationRequest *> *requests) {
-			NSMutableArray *identifiersToRemove = [NSMutableArray array];
-			for (UNNotificationRequest *request in requests) {
-				if ([request.identifier hasPrefix:[baseId stringByAppendingString:@"_"]]) {
-					[identifiersToRemove addObject:request.identifier];
+			@autoreleasepool {
+				NSMutableArray *identifiersToRemove = [NSMutableArray array];
+				for (UNNotificationRequest *request in requests) {
+					if ([notificationData isSequenceOf:[request identifier]]) {
+						[identifiersToRemove addObject:[request identifier]];
+					}
 				}
+				NSLog(@"NotificationSchedulerPlugin:Deleting notification IDs '%@' from UNC's pending notifications.", identifiersToRemove);
+				[center removePendingNotificationRequestsWithIdentifiers:identifiersToRemove];
 			}
-			[center removePendingNotificationRequestsWithIdentifiers:identifiersToRemove];
-			[center removeDeliveredNotificationsWithIdentifiers:identifiersToRemove];
+		}];
+
+		// Remove all delivered notifications with prefix baseId_
+		[center getDeliveredNotificationsWithCompletionHandler:^(NSArray<UNNotification *> * notifications) {
+			@autoreleasepool {
+				NSMutableArray *identifiersToRemove = [NSMutableArray array];
+				for (UNNotification *n in notifications) {
+					if ([notificationData isSequenceOf:[[n request] identifier]]) {
+						[identifiersToRemove addObject:[[n request] identifier]];
+					}
+				}
+
+				[center removeDeliveredNotificationsWithIdentifiers:identifiersToRemove];
+				NSLog(@"NotificationSchedulerPlugin: Deleting notification IDs '%@' from UNC's delivered notifications.", identifiersToRemove);
+			}
 		}];
 	}
 	else {
-		[center removePendingNotificationRequestsWithIdentifiers:@[baseId]];
-		[center removeDeliveredNotificationsWithIdentifiers:@[baseId]];
+		_remove_notification_from_UNC(notificationData);
 	}
 
-	// Remove persisted data from NSUserDefaults
-	[defaults removeObjectForKey:[notificationData getKey]];
+	_remove_notification_from_cache(notificationData);
 
 	return OK;
 }
@@ -394,8 +409,10 @@ void NotificationSchedulerPlugin::handle_completion(NSString* notificationId) {
 
 	NotificationData* notificationData = [[NotificationData alloc] initWithNsDictionary:notificationDict];
 
-	UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+	
 	if (notificationData.interval >= 60) {
+		UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+
 		// Remove handled notification from cache
 		[center removeDeliveredNotificationsWithIdentifiers:@[notificationData.notificationId]];
 
@@ -420,21 +437,62 @@ void NotificationSchedulerPlugin::handle_completion(NSString* notificationId) {
 						}
 
 						[center removeDeliveredNotificationsWithIdentifiers:identifiersToRemove];
+						NSLog(@"NotificationSchedulerPlugin: Deleting notification IDs '%@' from UNC's delivered notifications.", identifiersToRemove);
 					}
 				}];
-				[defaults removeObjectForKey:[notificationData getKey]];
-				NSLog(@"NotificationSchedulerPlugin: Removed repeating notification '%@' from cache!", [notificationData getKey]);
+				_remove_notification_from_cache(notificationData, @"repeating ");
 			}
 		}];
 	}
 	else {
-		[defaults removeObjectForKey:[notificationData getKey]];
-		[center removePendingNotificationRequestsWithIdentifiers:@[notificationData.notificationId]];
-		[center removeDeliveredNotificationsWithIdentifiers:@[notificationData.notificationId]];
-		NSLog(@"NotificationSchedulerPlugin: Removed notification '%@' from cache!", [notificationData getKey]);
+		_remove_notification_from_cache(notificationData);
+		_remove_notification_from_UNC(notificationData);
 	}
 
 	lastReceivedNotificationId = [notificationId intValue];
+}
+
+// Remove persisted data from NSUserDefaults
+void NotificationSchedulerPlugin::_remove_notification_from_cache(NotificationData* notificationData, NSString* notificationTypeDesc) {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	[defaults removeObjectForKey:[notificationData getKey]];
+	NSLog(@"NotificationSchedulerPlugin: Removed %@notification '%@' from plugin's cache!", notificationTypeDesc, [notificationData getKey]);
+}
+
+// Remove data from UNUserNotificationCenter
+void NotificationSchedulerPlugin::_remove_notification_from_UNC(NotificationData* notificationData) {
+	[notificationData isUNCPending:^(BOOL isPending) {
+		if (isPending) {
+			UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+			[center removePendingNotificationRequestsWithIdentifiers:@[notificationData.notificationId]];
+			[notificationData isUNCPending:^(BOOL isPending) {
+				if (isPending) {
+					NSLog(@"NotificationSchedulerPlugin: WARNING: Notification with ID '%@' was not successfully from UNC's pending notifications.", notificationData.notificationId);
+				} else {
+					NSLog(@"Notification with ID '%@' was successfully deleted from UNC's pending notifications!", notificationData.notificationId);
+				}
+			}];
+			NSLog(@"NotificationSchedulerPlugin: Notification with ID '%@' will be deleted from UNC's pending notifications.", notificationData.notificationId);
+		} else {
+			NSLog(@"NotificationSchedulerPlugin: Notification with ID '%@' was not found among UNC's pending notifications.", notificationData.notificationId);
+		}
+	}];
+	[notificationData isUNCDelivered:^(BOOL isDelivered) {
+		if (isDelivered) {
+			UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+			[center removeDeliveredNotificationsWithIdentifiers:@[notificationData.notificationId]];
+			[notificationData isUNCDelivered:^(BOOL isDelivered) {
+				if (isDelivered) {
+					NSLog(@"NotificationSchedulerPlugin: WARNING: Notification with ID '%@' was not successfully from UNC's pending notifications.", notificationData.notificationId);
+				} else {
+					NSLog(@"NotificationSchedulerPlugin: Notification with ID '%@' was successfully deleted from UNC's delivered notifications!", notificationData.notificationId);
+				}
+			}];
+			NSLog(@"NotificationSchedulerPlugin: Notification with ID '%@' will be deleted from UNC's pending notifications.", notificationData.notificationId);
+		} else {
+			NSLog(@"NotificationSchedulerPlugin: Notification with ID '%@' was not found among UNC's delivered notifications.", notificationData.notificationId);
+		}
+	}];
 }
 
 void NotificationSchedulerPlugin::_process_queued_notifications() {

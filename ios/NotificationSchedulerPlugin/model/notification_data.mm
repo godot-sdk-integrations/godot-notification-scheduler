@@ -2,6 +2,8 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
+#import <UserNotifications/UserNotifications.h>
+
 #import "notification_data.h"
 #import "nsp_converter.h"
 
@@ -139,6 +141,38 @@ const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter nsStringToGodotSt
 
 - (BOOL)isSequenceOf:(NSString *) identifier {
 	return [[NotificationData stripSequence:identifier] compare: self.notificationId] == NSOrderedSame;
+}
+
+- (void)isUNCPending:(void (^)(BOOL isPending))handler {
+	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+	[center getPendingNotificationRequestsWithCompletionHandler:^(NSArray<UNNotificationRequest *> * _Nonnull requests) {
+		BOOL found = NO;
+		for (UNNotificationRequest *request in requests) {
+			if ([request.identifier isEqualToString:self.notificationId]) {
+				found = YES;
+				break;
+			}
+		}
+		if (handler) {
+			handler(found);
+		}
+	}];
+}
+
+- (void)isUNCDelivered:(void (^)(BOOL isDelivered))handler {
+	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+	[center getDeliveredNotificationsWithCompletionHandler:^(NSArray<UNNotification *> * _Nonnull notifications) {
+		BOOL found = NO;
+		for (UNNotification *notification in notifications) {
+			if ([notification.request.identifier isEqualToString:self.notificationId]) {
+				found = YES;
+				break;
+			}
+		}
+		if (handler) {
+			handler(found);
+		}
+	}];
 }
 
 + (NSString *)toKey:(NSString *) identifier {

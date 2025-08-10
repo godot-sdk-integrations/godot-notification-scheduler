@@ -35,6 +35,8 @@ extern NSString * const PENDING_ACTION_KEY;
 - (NSString *) getKey;
 - (NSString *)getIdWithSequence:(int) sequence;
 - (BOOL) isSequenceOf:(NSString *) identifier;
+- (void)isUNCPending:(void (^)(BOOL isPending))handler;
+- (void)isUNCDelivered:(void (^)(BOOL isDelivered))handler;
 
 + (NSString *) toKey:(NSString *) identifier;
 + (NSString *) stripSequence:(NSString *) identifier;

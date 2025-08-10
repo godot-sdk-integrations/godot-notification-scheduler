@@ -29,6 +29,8 @@ private:
 
 	static void _bind_methods();
 	void _process_queued_notifications();
+	void _remove_notification_from_cache(NotificationData* notificationData, NSString* notificationTypeDesc = @"");
+	void _remove_notification_from_UNC(NotificationData* notificationData);
 	void schedule_notification(NotificationData* notificationData);
 	void schedule_repeating_sequence(NotificationData* notificationData, int count);
 
