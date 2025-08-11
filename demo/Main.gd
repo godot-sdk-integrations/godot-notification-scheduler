@@ -64,7 +64,7 @@ func _create_channel() -> void:
 
 	if __result != OK:
 		match __result:
-			ERR_UNAVAILABLE:
+			ERR_UNCONFIGURED:
 				_print_to_screen("Can't create channel %s because plugin not initialized!" % channel_id)
 			ERR_ALREADY_EXISTS:
 				_print_to_screen("Can't create channel %s because it already exists!" % channel_id)
@@ -83,10 +83,10 @@ func _on_send_button_pressed() -> void:
 			.set_channel_id(channel_id)\
 			.set_title(notification_title)\
 			.set_content(notification_text)\
-			.set_delay(_delay_slider.value)
+			.set_delay(roundi(_delay_slider.value))
 
 	if _interval_checkbox.button_pressed:
-		__notification_data.set_interval(_interval_slider.value)
+		__notification_data.set_interval(roundi(_interval_slider.value))
 
 	if _restart_checkbox.button_pressed:
 		__notification_data.set_restart_app_option()

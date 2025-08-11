@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bd23rk21snlwn" path="res://Main.gd" id="1_r6ksj"]
 [ext_resource type="Texture2D" uid="uid://b11m8fw2showh" path="res://assets/notification-scheduler-android.png" id="2_7rmrj"]
-[ext_resource type="Script" uid="uid://bcwf1l618ham1" path="res://addons/NotificationSchedulerPlugin/NotificationScheduler.gd" id="3_guixi"]
+[ext_resource type="Script" uid="uid://o8yuf6djrtal" path="res://addons/NotificationSchedulerPlugin/NotificationScheduler.gd" id="3_guixi"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_r6ksj")
