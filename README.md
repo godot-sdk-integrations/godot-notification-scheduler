@@ -12,9 +12,9 @@ A unified GDScript interface for scheduling **local notifications** on **Android
 
 **Features:**
 - Schedule local notifications with customizable titles, content, and delays.
-- Manage notification channels (Android) and badges (iOS).
+- Schedule repeating notifications with intervals.
+- Manage notification channels and badges.
 - Handle permissions and user interactions via signals.
-- Compatible with Godot 4.x (or specify supported versions).
 
 ---
 
