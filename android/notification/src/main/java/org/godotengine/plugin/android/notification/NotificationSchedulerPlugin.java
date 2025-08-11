@@ -59,9 +59,11 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	private static final int NOTIFICATION_NOT_FOUND = -1;
 
 	private Activity activity;
+	private boolean isInitialized;
 
 	public NotificationSchedulerPlugin(Godot godot) {
 		super(godot);
+		isInitialized = false;
 	}
 
 	/**
@@ -69,6 +71,8 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 */
 	@UsedByGodot
 	public void initialize() {
+		isInitialized = true;
+
 		// Nothing to do on Android version (implemented for platform parity)
 		emitSignal(getGodot(), getPluginName(), INITIALIZATION_COMPLETED_SIGNAL);
 	}
@@ -82,6 +86,11 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	@RequiresApi(api = Build.VERSION_CODES.O)
 	@UsedByGodot
 	public int create_notification_channel(Dictionary data) {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "create_notification_channel(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		ChannelData channelData = new ChannelData(data);
 		if (channelData.validate()) {
 			NotificationManager manager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
@@ -104,6 +113,7 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 			Log.e(LOG_TAG, "create_notification_channel(): invalid channel data object");
 			return Error.ERR_INVALID_DATA.toNativeValue();
 		}
+
 		return Error.OK.toNativeValue();
 	}
 
@@ -113,9 +123,13 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 * @param data dictionary containing notification data, including delaySeconds that specifies
 	 *				how many seconds from now to schedule the notification.
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.N)
 	@UsedByGodot
-	public void schedule(Dictionary data) {
+	public int schedule(Dictionary data) {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "schedule(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		NotificationData notificationData = new NotificationData(data);
 		Log.d(LOG_TAG, "schedule():: notification id: " + notificationData.getId());
 		if (notificationData.isValid()) {
@@ -148,6 +162,8 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		} else {
 			Log.e(LOG_TAG, "schedule(): invalid notification data object");
 		}
+
+		return Error.OK.toNativeValue();
 	}
 
 	/**
@@ -155,16 +171,28 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 *
 	 * @param notificationId ID of notification to cancel
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.M)
 	@UsedByGodot
-	public void cancel(int notificationId) {
+	public int cancel(int notificationId) {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "cancel(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		cancelNotification(activity, notificationId);
 		Log.d(LOG_TAG, "cancel():: notification id: " + notificationId);
+
+		return Error.OK.toNativeValue();
 	}
 
 	@UsedByGodot
-	public void set_badge_count(int badgeCount) {
+	public int set_badge_count(int badgeCount) {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "set_badge_count(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		Log.e(LOG_TAG, "set_badge_count(): method not supported on Android");
+		return Error.ERR_UNAVAILABLE.toNativeValue();
 	}
 
 	/**
@@ -174,6 +202,11 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 */
 	@UsedByGodot
 	public int get_notification_id(int defaultValue) {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "get_notification_id(): plugin is not initialized!");
+			return defaultValue;
+		}
+
 		int notificationId = defaultValue;
 		Activity activity = getActivity();
 		if (activity != null) {
@@ -193,6 +226,11 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 */
 	@UsedByGodot
 	public boolean has_post_notifications_permission() {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "has_post_notifications_permission(): plugin is not initialized!");
+			return false;
+		}
+
 		boolean result = false;
 		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
 			if (NotificationManagerCompat.from(activity.getApplicationContext()).areNotificationsEnabled()) {
@@ -209,7 +247,12 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 * Sends a request to acquire POST_NOTIFICATIONS permission for the app
 	 */
 	@UsedByGodot
-	public void request_post_notifications_permission() {
+	public int request_post_notifications_permission() {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "request_post_notifications_permission(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		try {
 			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
 				ActivityCompat.requestPermissions(activity, new String[]{ Manifest.permission.POST_NOTIFICATIONS },
@@ -220,13 +263,20 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "request_post_notifications_permission():: Failed to request permission due to " + e.getMessage());
 		}
+
+		return Error.OK.toNativeValue();
 	}
 
 	/**
 	 * Opens APP INFO settings screen
 	 */
 	@UsedByGodot
-	public void open_app_info_settings() {
+	public int open_app_info_settings() {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "open_app_info_settings(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
 		Log.d(LOG_TAG, "open_app_info_settings()");
 
 		try {
@@ -238,6 +288,8 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "open_app_info_settings():: Failed due to "+ e.getMessage());
 		}
+
+		return Error.OK.toNativeValue();
 	}
 
 	@NonNull
@@ -345,14 +397,12 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		emitSignal(getGodot(), getPluginName(), NOTIFICATION_DISMISSED_SIGNAL, notificationId);
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.N)
 	private long calculateTimeAfterDelay(int delaySeconds) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.SECOND, delaySeconds);
 		return calendar.getTimeInMillis();
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.N)
 	private void scheduleNotification(Activity activity, int notificationId, Intent intent, int delaySeconds) {
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
 		long timeAfterDelay = calculateTimeAfterDelay(delaySeconds);
@@ -362,7 +412,6 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d.", notificationId, timeAfterDelay));
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.N)
 	private void scheduleRepeatingNotification(Activity activity, int notificationId, Intent intent, int delaySeconds, int intervalSeconds) {
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
 		long timeAfterDelay = calculateTimeAfterDelay(delaySeconds);
@@ -372,7 +421,6 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d with %ds interval.", notificationId, timeAfterDelay, intervalSeconds));
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.M)
 	private void cancelNotification(Activity activity, int notificationId) {
 		Context context = activity.getApplicationContext();
 
