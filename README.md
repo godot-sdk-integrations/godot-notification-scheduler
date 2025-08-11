@@ -152,7 +152,7 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-## <img src="addon/icon.png" width="20"> Links
+# <img src="addon/icon.png" width="20"> Links
 
 - [AssetLib Entry Android](https://godotengine.org/asset-library/asset/2547)
 - [AssetLib Entry iOS](https://godotengine.org/asset-library/asset/3186)
@@ -175,7 +175,7 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 <a name="credits">
 
-## <img src="addon/icon.png" width="24"> Credits
+# <img src="addon/icon.png" width="24"> Credits
 
 - Developed by [Cengiz](https://github.com/cengiz-pz)
 - iOS part based on [Godot iOS Plugin Template](https://github.com/cengiz-pz/godot-ios-plugin-template)
