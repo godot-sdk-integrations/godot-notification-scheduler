@@ -8,144 +8,215 @@
 
 # <img src="addon/icon.png" width="24"> Godot Notification Scheduler Plugin
 
-Notification Scheduler Plugin provides a unified GDScript interface for the scheduling of local notifications on the Android and iOS platforms.
+A unified GDScript interface for scheduling **local notifications** on **Android** and **iOS**.
 
-_This plugin has been moved under the umbrella of [Godot SDK Integrations](https://github.com/godot-sdk-integrations) organization in Github. Previously, the plugin was placed under three separate repositories: [Android](https://github.com/cengiz-pz/godot-android-notification-scheduler-plugin), [iOS](https://github.com/cengiz-pz/godot-ios-notification-scheduler-plugin), and [addon interface](https://github.com/cengiz-pz/godot-notification-scheduler-addon)._
+**Features:**
+- Schedule local notifications with customizable titles, content, and delays.
+- Manage notification channels (Android) and badges (iOS).
+- Handle permissions and user interactions via signals.
+- Compatible with Godot 4.x (or specify supported versions).
 
-<br/>
+---
+
+## <img src="addon/icon.png" width="20"> Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [Signals](#signals)
+- [Error Codes](#error-codes)
+- [Platform-Specific Notes](#platform-specific-notes)
+- [Links](#links)
+- [All Plugins](#all-plugins)
+- [Credits](#credits)
+- [Contributing](#contributing)
+
+---
+
+<a name="installation">
 
 ## <img src="addon/icon.png" width="20"> Installation
-_Before installing this plugin, make sure to uninstall any previous versions of the same plugin._
 
-_If installing both Android and iOS versions of the plugin in the same project, then make sure that both versions use the same addon interface version._
+**Uninstall previous versions** before installing.
+If using both Android & iOS, ensure **same addon interface version**.
 
-There are 2 ways to install the `Notification Scheduler` plugin into your project:
-- Through the Godot Editor's AssetLib
-- Manually by downloading archives from Github
+**Options:**
+1. **AssetLib**
+	- Search for `Notification Scheduler`
+	- Click `Download` → `Install`
+	- Install to project root, `Ignore asset root` checked
+	- Enable via **Project → Project Settings → Plugins**
+	- Ignore file conflict warnings when installing both versions
+2. **Manual**
+	- Download release from GitHub
+	- Unzip to project root
+	- Enable via **Plugins** tab
 
-### <img src="addon/icon.png" width="18"> Installing via AssetLib
-Steps:
-- search for and select the `Notification Scheduler` plugin in Godot Editor
-- click `Download` button
-- on the installation dialog...
-	- keep `Change Install Folder` setting pointing to your project's root directory
-	- keep `Ignore asset root` checkbox checked
-	- click `Install` button
-- enable the plugin via the `Plugins` tab of `Project->Project Settings...` menu, in the Godot Editor
+---
 
-#### <img src="addon/icon.png" width="16"> Installing both Android and iOS versions of the plugin in the same project
-When installing via AssetLib, the installer may display a warning that states "_[x number of]_ files conflict with your project and won't be installed." You can ignore this warning since both versions use the same addon code.
-
-### <img src="addon/icon.png" width="18"> Installing manually
-Steps:
-- download release archive from Github
-- unzip the release archive
-- copy to your Godot project's root directory
-- enable the plugin via the `Plugins` tab of `Project->Project Settings...` menu, in the Godot Editor
-
+<a name="usage">
 
 ## <img src="addon/icon.png" width="20"> Usage
-Add a `NotificationScheduler` node to your scene and follow the following steps:
-- Register listeners for the following signals emitted from the `NotificationScheduler` node
-	- `notification_opened` - when user taps notification item
+
+1. Add a **NotificationScheduler** node to your scene.
+2. Connect [signals](#signals):
+	- `initialization_completed`
+	- `notification_opened`
+	- `notification_dismissed`
 	- `permission_granted`
 	- `permission_denied`
-- At startup, using the `NotificationScheduler` node to check that the application has permissions to post notifications:
-```
-	$NotificationScheduler.has_post_notifications_permission()
-```
-- If the application doesn't have permissions to post notifications, then request permission using the `NotificationScheduler` node:
-```
-	$NotificationScheduler.request_post_notifications_permission()
-```
-- `permission_granted` signal will be emitted when the application receives the permissions
-> On Android, apps that target Android 13 or higher can ask for notification permission as many times as they want until the user explicitly denies the permission twice. If the user targets Android 12 or lower, the app can ask for permission as many times as it wants until the user denies the permission once. If the user denies the permission twice, the app can't ask again unless the user reinstalls the app
-- After user has denied the request, you can ask to turn on notification permission manually and send them to App_Info screen using the `NotificationScheduler` node:(Best Practice: Don't promt users automatically, insted keep a button in settings to toggle notifications)
-```
+3. Check permission:
+	```gdscript
+	if not $NotificationScheduler.has_post_notifications_permission():
+		$NotificationScheduler.request_post_notifications_permission()
+	```
+4. To send user to App Info (manual enable):
+	```gdscript
 	$NotificationScheduler.open_app_info_settings()
-```
-- Create a notification channel using the `NotificationScheduler` node:
-```
-	var __result = $NotificationScheduler.create_notification_channel(
-		NotificationChannel.new()
-			.set_id("my_channel_id")
-			.set_name("My Channel Name")
-			.set_description("My channel description")
-			.set_importance(NotificationChannel.Importance.DEFAULT))
-```
-_Note: `create_notification_channel()` method returns `OK` if channel has been created successfully, `ERR_UNAVAILABLE` if plugin was not initialized, `ERR_INVALID_DATA` if `NotificationChannel` data is invalid, and `ERR_ALREADY_EXISTS` if a channel with the same ID already exists._
-- Build `NotificationData` object:
-```
-	var my_notification_data = NotificationData.new()
-	my_notification_data.set_id(__notification_id).\
-			set_channel_id("my_channel_id").\
-			set_title("My Notification Title").\
-			set_content("My notification content").\
-			set_small_icon_name("ic_name_of_the_icon_that_you_generated").\
-			set_delay(my_delay_in_seconds)
-```
-- Schedule notification using the `NotificationScheduler` node:
-```
-	$NotificationScheduler.schedule(
-			my_notification_data
-		)
-```
-- _`NotificationData`'s `set_interval(interval_in_seconds)` method can be used for scheduling repeating notifications._
-- _`NotificationData`'s `set_deeplink(data)` method can be used for delivering URI data along with the notification._
-	- _The [Deeplink Plugin](https://github.com/cengiz-pz/godot-android-deeplink-plugin) can then be used to process the URI data._
+	```
+5. Create a notification channel:
+	```gdscript
+	var res = $NotificationScheduler.create_notification_channel(
+		 NotificationChannel.new()
+			  .set_id("my_channel_id")
+			  .set_name("My Channel Name")
+			  .set_description("My channel description")
+			  .set_importance(NotificationChannel.Importance.DEFAULT))
+	```
+6. Build & schedule notification:
+	```gdscript
+	var data = NotificationData.new()
+		 .set_id(1)
+		 .set_channel_id("my_channel_id")
+		 .set_title("My Title")
+		 .set_content("My content")
+		 .set_small_icon_name("ic_custom_icon")
+		 .set_delay(10)
 
-### <img src="addon/icon.png" width="18"> Other Available Methods
-- `cancel(notification_id)` - cancel a notification before it is delivered.
-- `set_badge_count()` - set the number that appears on the app icon. (Set to 0 to remove.)
-- `get_notification_id()` - alternative way to get the ID of the last opened notification.
+	var res = $NotificationScheduler.schedule(data)
+	```
 
-<br/><br/>
+**Other Methods:**
+- `cancel(id)` – cancel before opened/dismissed
+- `set_badge_count(count)` – set/remove app icon badge (iOS-only)
+- `get_notification_id()` – get ID of last opened notification
 
 ---
 
-# <img src="addon/icon.png" width="24"> Android Notification Scheduler Plugin
+<a name="signals">
 
-<p align="center">
-	<img width="256" height="256" src="demo/assets/notification-scheduler-android.png">
-</p>
+## <img src="addon/icon.png" width="20"> Signals
 
-
-## [Android-specific Documentation](android/README.md)
-## [AssetLib Entry](https://godotengine.org/asset-library/asset/2547)
-
-<br/><br/>
+- `initialization_completed()`: Emitted when the plugin is initialized.
+- `notification_opened(notification_id: int)`: Emitted when a user taps notification.
+- `notification_dismissed(notification_id: int)`: Emitted when a user dismisses notification.
+- `permission_granted(permission_name: String)`: Emitted when permission is granted.
+- `permission_denied(permission_name: String)`: Emitted when permission is denied.
 
 ---
 
-# <img src="addon/icon.png" width="24"> iOS Notification Scheduler Plugin
+<a name="error-codes">
 
-<p align="center">
-	<img width="256" height="256" src="demo/assets/notification-scheduler-ios.png">
-</p>
+## <img src="addon/icon.png" width="20"> Error Codes
 
-## [iOS-specific Documentation](ios/README.md)
-## [AssetLib Entry](https://godotengine.org/asset-library/asset/3186)
-
-<br/><br/>
+| Constant              | Value | Description                             |
+|-----------------------|-------|-----------------------------------------|
+| `ERR_ALREADY_EXISTS`  | `1`   | Channel ID already exists               |
+| `ERR_INVALID_DATA`    | `2`   | Invalid notification/channel data       |
+| `ERR_UNAVAILABLE`     | `3`   | Not supported on current platform       |
+| `ERR_UNCONFIGURED`    | `4`   | Plugin not initialized                  |
+| `OK`                  | `0`   | Success                                 |
 
 ---
+
+<a name="platform-specific-notes">
+
+## <img src="addon/icon.png" width="20"> Platform-Specific Notes
+
+### Android
+- **Default icon:** `ic_default_notification` in `res://assets/NotificationSchedulerPlugin`
+- **Custom icon:**
+  1. Generate via Android Studio → **Image Asset Studio** → **Notification Icons**
+  2. Copy generated drawables into `res://assets/NotificationSchedulerPlugin`
+  3. Use `set_small_icon_name("icon_name")`
+- **Troubleshooting:**
+  - Logs: `adb logcat | grep 'godot'` (Linux), `adb.exe logcat | select-string "godot"` (Windows)
+  - No small icon error: ensure icons exist in assets directory.
+  - Battery restrictions: check **Settings → Apps → Your App → Battery**.
+
+### iOS
+- Set notification icons in **Project → Export → iOS**.
+- System limits:
+	- Max repeating notifications: 64
+	- Min interval: 60 seconds
+- View XCode logs while running the game for troubleshooting.
+- See [Godot iOS Export Troubleshooting](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html#troubleshooting).
+
+---
+
+## <img src="addon/icon.png" width="20"> Links
+
+- [AssetLib Entry Android](https://godotengine.org/asset-library/asset/2547)
+- [AssetLib Entry iOS](https://godotengine.org/asset-library/asset/3186)
+
+---
+
+<a name="all-plugins">
+
 # <img src="addon/icon.png" width="24"> All Plugins
 
 | Plugin | Android | iOS |
-| :---: | :--- | :--- |
+| :--- | :---: | :---: |
 | [Notification Scheduler](https://github.com/godot-sdk-integrations/godot-notification-scheduler) | ✅ | ✅ |
 | [Admob](https://github.com/godot-sdk-integrations/godot-admob) | ✅ | ✅ |
 | [Deeplink](https://github.com/godot-sdk-integrations/godot-deeplink) | ✅ | ✅ |
 | [Share](https://github.com/godot-sdk-integrations/godot-share) | ✅ | ✅ |
 | [In-App Review](https://github.com/godot-sdk-integrations/godot-inapp-review) | ✅ | ✅ |
 
-<br/><br/>
+---
+
+<a name="credits">
+
+## <img src="addon/icon.png" width="24"> Credits
+
+- Developed by [Cengiz](https://github.com/cengiz-pz)
+- iOS part based on [Godot iOS Plugin Template](https://github.com/cengiz-pz/godot-ios-plugin-template)
+- Original: [Godot Notification Scheduler](https://github.com/godot-sdk-integrations/godot-notification-scheduler)
 
 ---
-# <img src="addon/icon.png" width="24"> Credits
 
-Developed by [Cengiz](https://github.com/cengiz-pz)
+<a name="contributing">
 
-iOS part is based on: [Godot iOS Plugin Template](https://github.com/cengiz-pz/godot-ios-plugin-template)
+# <img src="addon/icon.png" width="24"> Contributing
 
-Original repository: [Godot Notification Scheduler Plugin](https://github.com/godot-sdk-integrations/godot-notification-scheduler)
+This section provides information on how to build the plugin for contributors.
+
+---
+
+## <img src="addon/icon.png" width="20"> iOS
+
+### Prerequisites
+
+- [Install SCons](https://scons.org/doc/production/HTML/scons-user/ch01s02.html)
+- [Install CocoaPods](https://guides.cocoapods.org/using/getting-started.html)
+
+---
+
+### Build
+
+- Run `./script/build.sh -A <godot version>` initially to run a full build
+- Run `./script/build.sh -cgA <godot version>` to clean, redownload Godot, and rebuild
+- Run `./script/build.sh -ca` to clean and build without redownloading Godot
+- Run `./script/build.sh -h` for more information on the build script
+
+---
+
+## <img src="addon/icon.png" width="20"> Android
+
+### Build
+
+**Options:**
+1. Use [Android Studio](https://developer.android.com/studio) to build via **Build->Assemble Project** menu
+	- Switch **Active Build Variant** to **release** and repeat
+	- Run **packageDistribution** task to create release archive
+2. Use project-root-level **build.sh** script
+	- `./script/build.sh -ca` - clean existing build, do a debug build for Android
+	- `./script/build.sh -carz` - clean existing build, do a release build for Android, and create archive
