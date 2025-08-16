@@ -7,19 +7,19 @@
 #import "notification_scheduler_plugin_implementation.h"
 #import "core/config/engine.h"
 
-NotificationSchedulerPlugin *plugin;
+NotificationSchedulerPlugin *notification_scheduler_plugin;
 
 void notification_scheduler_plugin_init() {
 	NSLog(@"NotificationSchedulerPlugin: Initializing plugin at timestamp: %f", [[NSDate date] timeIntervalSince1970]);
-	plugin = memnew(NotificationSchedulerPlugin);
-	Engine::get_singleton()->add_singleton(Engine::Singleton("NotificationSchedulerPlugin", plugin));
+	notification_scheduler_plugin = memnew(NotificationSchedulerPlugin);
+	Engine::get_singleton()->add_singleton(Engine::Singleton("NotificationSchedulerPlugin", notification_scheduler_plugin));
 	NSLog(@"NotificationSchedulerPlugin: Singleton registered");
 }
 
 void notification_scheduler_plugin_deinit() {
 	NSLog(@"NotificationSchedulerPlugin: Deinitializing plugin");
-	if (plugin) {
-		memdelete(plugin);
-		plugin = nullptr;
+	if (notification_scheduler_plugin) {
+		memdelete(notification_scheduler_plugin);
+		notification_scheduler_plugin = nullptr;
 	}
 }
