@@ -152,6 +152,8 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
+<a name="links">
+
 # <img src="addon/icon.png" width="20"> Links
 
 - [AssetLib Entry Android](https://godotengine.org/asset-library/asset/2547)

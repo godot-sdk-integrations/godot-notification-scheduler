@@ -2,8 +2,8 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-import java.util.Properties
 import org.apache.tools.ant.filters.ReplaceTokens
+import com.android.build.gradle.internal.api.LibraryVariantOutputImpl
 
 plugins {
 	alias(libs.plugins.android.library)
@@ -12,10 +12,6 @@ plugins {
 }
 
 apply(from = "${rootDir}/config.gradle.kts")
-
-val props = Properties().apply {
-	load(file("../../ios/config/config.properties").inputStream())
-}
 
 android {
 	namespace = project.extra["pluginPackageName"] as String
@@ -31,7 +27,6 @@ android {
 		manifestPlaceholders["godotPluginName"] = project.extra["pluginName"] as String
 		manifestPlaceholders["godotPluginPackageName"] = project.extra["pluginPackageName"] as String
 		buildConfigField("String", "GODOT_PLUGIN_NAME", "\"${project.extra["pluginName"]}\"")
-		setProperty("archivesBaseName", project.extra["pluginName"] as String)
 	}
 
 	compileOptions {
@@ -46,15 +41,24 @@ android {
 	}
 
 	buildToolsVersion = libs.versions.buildTools.get()
+
+	// ✅ Force AAR filenames to match original case and format
+	libraryVariants.all {
+		outputs.all {
+			val outputImpl = this as LibraryVariantOutputImpl
+			val buildType = name // "debug" or "release"
+			outputImpl.outputFileName = "${project.extra["pluginName"]}-$buildType.aar"
+		}
+	}
 }
 
-val pluginDependencies = arrayOf(
+val androidDependencies = arrayOf(
 	libs.androidx.appcompat.get()
 )
 
 dependencies {
 	implementation("godot:godot-lib:${project.extra["godotVersion"]}.${project.extra["releaseType"]}@aar")
-	pluginDependencies.forEach { implementation(it) }
+	androidDependencies.forEach { implementation(it) }
 }
 
 tasks {
@@ -105,17 +109,17 @@ tasks {
 			"notificationReceiverClass" to (project.extra["notificationReceiverClassPath"] as String),
 			"cancelReceiverClass" to (project.extra["cancelReceiverClassPath"] as String),
 			"pluginDependencies" to pluginDependencies.joinToString(", ") { "\"$it\"" },
-			"iosFrameworks" to (props.getProperty("frameworks") ?: "")
+			"iosFrameworks" to (project.extra["iosFrameworks"] as String)
 				.split(",")
 				.map { it.trim() }
 				.filter { it.isNotBlank() }
 				.joinToString(", ") { "\"$it\"" },
-			"iosEmbeddedFrameworks" to (props.getProperty("embedded_frameworks") ?: "")
+			"iosEmbeddedFrameworks" to (project.extra["iosEmbeddedFrameworks"] as String)
 				.split(",")
 				.map { it.trim() }
 				.filter { it.isNotBlank() }
 				.joinToString(", ") { "\"$it\"" },
-			"iosLinkerFlags" to (props.getProperty("flags") ?: "")
+			"iosLinkerFlags" to (project.extra["iosLinkerFlags"] as String)
 				.split(",")
 				.map { it.trim() }
 				.filter { it.isNotBlank() }

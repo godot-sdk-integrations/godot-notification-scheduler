@@ -11,7 +11,7 @@ const PLUGIN_NAME: String = "@pluginName@"
 const RESULT_ACTIVITY_CLASS_PATH: String = "@resultClass@"
 const NOTIFICATION_RECEIVER_CLASS_PATH: String = "@notificationReceiverClass@"
 const CANCEL_RECEIVER_CLASS_PATH: String = "@cancelReceiverClass@"
-const PLUGIN_DEPENDENCIES: Array = [ @pluginDependencies@ ]
+const ANDROID_DEPENDENCIES: Array = [ @androidDependencies@ ]
 const IOS_FRAMEWORKS: Array = [ @iosFrameworks@ ]
 const IOS_EMBEDDED_FRAMEWORKS: Array = [ @iosEmbeddedFrameworks@ ]
 const IOS_LINKER_FLAGS: Array = [ @iosLinkerFlags@ ]
@@ -67,7 +67,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 
 
 	func _get_android_dependencies(platform: EditorExportPlatform, debug: bool) -> PackedStringArray:
-		return PackedStringArray(PLUGIN_DEPENDENCIES)
+		return PackedStringArray(ANDROID_DEPENDENCIES)
 
 
 	func _get_android_manifest_application_element_contents(platform: EditorExportPlatform, debug: bool) -> String:

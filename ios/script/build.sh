@@ -12,38 +12,43 @@ ROOT_DIR=$(realpath $IOS_DIR/..)
 ANDROID_DIR=$ROOT_DIR/android
 ADDON_DIR=$ROOT_DIR/addon
 GODOT_DIR=$IOS_DIR/godot
-CONFIG_DIR=$IOS_DIR/config
+IOS_CONFIG_DIR=$IOS_DIR/config
 PODS_DIR=$IOS_DIR/Pods
 BUILD_DIR=$IOS_DIR/build
 DEST_DIR=$BUILD_DIR/release
 FRAMEWORK_DIR=$BUILD_DIR/framework
 LIB_DIR=$BUILD_DIR/lib
+IOS_CONFIG_FILE=$IOS_CONFIG_DIR/config.properties
+COMMON_CONFIG_FILE=$ROOT_DIR/common/config.properties
 
-PLUGIN_NODE_TYPE=$($SCRIPT_DIR/get_config_property.sh plugin_node_name)
-PLUGIN_NAME="${PLUGIN_NODE_TYPE}Plugin"
-PLUGIN_VERSION=''
+PLUGIN_NODE_NAME=$($SCRIPT_DIR/get_config_property.sh -f $COMMON_CONFIG_FILE pluginNodeName)
+PLUGIN_NAME="${PLUGIN_NODE_NAME}Plugin"
+PLUGIN_VERSION=$($SCRIPT_DIR/get_config_property.sh -f $COMMON_CONFIG_FILE pluginVersion)
+IOS_INITIALIZATION_METHOD=$($SCRIPT_DIR/get_config_property.sh -f $IOS_CONFIG_FILE initialization_method)
+IOS_DEINITIALIZATION_METHOD=$($SCRIPT_DIR/get_config_property.sh -f $IOS_CONFIG_FILE deinitialization_method)
 PLUGIN_PACKAGE_NAME=$($SCRIPT_DIR/get_gradle_property.sh pluginPackageName $ANDROID_DIR/config.gradle.kts)
 ANDROID_DEPENDENCIES=$($SCRIPT_DIR/get_android_dependencies.sh)
+GODOT_VERSION=$($SCRIPT_DIR/get_config_property.sh -f $COMMON_CONFIG_FILE godotVersion)
 IOS_FRAMEWORKS=()
 while IFS= read -r line; do
 	IOS_FRAMEWORKS+=("$line")
-done < <($SCRIPT_DIR/get_config_property.sh -qa frameworks)
+done < <($SCRIPT_DIR/get_config_property.sh -qa -f $IOS_CONFIG_FILE frameworks)
 IOS_EMBEDDED_FRAMEWORKS=()
 while IFS= read -r line; do
 	IOS_EMBEDDED_FRAMEWORKS+=("$line")
-done < <($SCRIPT_DIR/get_config_property.sh -qa embedded_frameworks)
+done < <($SCRIPT_DIR/get_config_property.sh -qa -f $IOS_CONFIG_FILE embedded_frameworks)
 IOS_LINKER_FLAGS=()
 while IFS= read -r line; do
 	IOS_LINKER_FLAGS+=("$line")
-done < <($SCRIPT_DIR/get_config_property.sh -qa flags)
+done < <($SCRIPT_DIR/get_config_property.sh -qa -f $IOS_CONFIG_FILE flags)
 SUPPORTED_GODOT_VERSIONS=()
 while IFS= read -r line; do
 	SUPPORTED_GODOT_VERSIONS+=($line)
-done < <($SCRIPT_DIR/get_config_property.sh -a valid_godot_versions)
+done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE valid_godot_versions)
 EXTRA_PROPERTIES=()
 while IFS= read -r line; do
 	EXTRA_PROPERTIES+=($line)
-done < <($SCRIPT_DIR/get_config_property.sh -a extra_properties)
+done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE extra_properties)
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
 do_clean=false
@@ -66,29 +71,28 @@ function display_help()
 	echo_yellow "If plugin version is not set with the -z option, then Godot version will be used."
 	echo
 	$ROOT_DIR/script/echocolor.sh -Y "Syntax:"
-	echo_yellow "	$0 [-a|A <godot version>|c|g|G <godot version>|h|H|i|p|P|t <timeout>|z <version>]"
+	echo_yellow "	$0 [-a|A|c|g|G|h|H|i|p|P|t <timeout>|z]"
 	echo
 	$ROOT_DIR/script/echocolor.sh -Y "Options:"
 	echo_yellow "	a	generate godot headers and build plugin"
-	echo_yellow "	A	download specified godot version, generate godot headers, and"
+	echo_yellow "	A	download configured godot version, generate godot headers, and"
 	echo_yellow "	 	build plugin"
 	echo_yellow "	b	build plugin"
 	echo_yellow "	c	remove any existing plugin build"
 	echo_yellow "	g	remove godot directory"
-	echo_yellow "	G	download the godot version specified in the option argument"
-	echo_yellow "	 	into godot directory"
+	echo_yellow "	G	download the configured godot version into godot directory"
 	echo_yellow "	h	display usage information"
 	echo_yellow "	H	generate godot headers"
 	echo_yellow "	i	ignore if an unsupported godot version selected and continue"
 	echo_yellow "	p	remove pods and pod repo trunk"
 	echo_yellow "	P	install pods"
 	echo_yellow "	t	change timeout value for godot build"
-	echo_yellow "	z	create zip archive with given version added to the file name"
+	echo_yellow "	z	create zip archive, include configured version in the file name"
 	echo
 	$ROOT_DIR/script/echocolor.sh -Y "Examples:"
 	echo_yellow "	* clean existing build, remove godot, and rebuild all"
-	echo_yellow "		$> $0 -cgA 4.2"
-	echo_yellow "		$> $0 -cgpG 4.2 -HPbz 1.0"
+	echo_yellow "		$> $0 -cgA"
+	echo_yellow "		$> $0 -cgpGHPbz"
 	echo
 	echo_yellow "	* clean existing build, remove pods and pod repo trunk, and rebuild plugin"
 	echo_yellow "		$> $0 -cpPb"
@@ -97,9 +101,9 @@ function display_help()
 	echo_yellow "		$> $0 -ca"
 	echo
 	echo_yellow "	* clean existing build and rebuild plugin with custom plugin version"
-	echo_yellow "		$> $0 -cHbz 1.0"
+	echo_yellow "		$> $0 -cHbz"
 	echo
-	echo_yellow "	* clean existing build and rebuild plugin with custom build timeout"
+	echo_yellow "	* clean existing build and rebuild plugin with custom build-header timeout"
 	echo_yellow "		$> $0 -cHbt 15"
 	echo
 }
@@ -186,26 +190,19 @@ function remove_pods()
 
 function download_godot()
 {
-	if [[ $# -eq 0 ]]
-	then
-		display_error "Error: Please provide the Godot version as an option argument for -G option."
-		exit 1
-	fi
-
 	if [[ -d "$GODOT_DIR" ]]
 	then
 		display_error "Error: $GODOT_DIR directory already exists. Won't download."
 		exit 1
 	fi
 
-	SELECTED_GODOT_VERSION=$1
-	display_status "downloading godot version $SELECTED_GODOT_VERSION..."
+	display_status "downloading godot version $GODOT_VERSION..."
 
-	$SCRIPT_DIR/fetch_git_repo.sh -t ${SELECTED_GODOT_VERSION}-stable https://github.com/godotengine/godot.git $GODOT_DIR
+	$SCRIPT_DIR/fetch_git_repo.sh -t $GODOT_VERSION-stable https://github.com/godotengine/godot.git $GODOT_DIR
 
 	if [[ -d "$GODOT_DIR" ]]
 	then
-		echo "$SELECTED_GODOT_VERSION" > $GODOT_DIR/GODOT_VERSION
+		echo "$GODOT_VERSION" > $GODOT_DIR/GODOT_VERSION
 	fi
 }
 
@@ -220,7 +217,7 @@ function generate_godot_headers()
 
 	display_status "starting godot build to generate godot headers..."
 
-	$SCRIPT_DIR/run_with_timeout.sh -t $BUILD_TIMEOUT -c "scons platform=ios target=template_release" -d ./godot || true
+	$SCRIPT_DIR/run_with_timeout.sh -t $BUILD_TIMEOUT -c "scons platform=ios target=template_release" -d $GODOT_DIR || true
 
 	display_status "terminated godot build after $BUILD_TIMEOUT seconds..."
 }
@@ -233,8 +230,6 @@ function generate_static_library()
 		display_error "Error: godot wasn't downloaded properly. Can't generate static library."
 		exit 1
 	fi
-
-	GODOT_VERSION=$(cat $GODOT_DIR/GODOT_VERSION)
 
 	TARGET_TYPE="$1"
 	lib_directory="$2"
@@ -256,7 +251,7 @@ function generate_static_library()
 function install_pods()
 {
 	display_status "installing pods..."
-	pod install --repo-update || true
+	pod install --repo-update --project-directory=$IOS_DIR/ || true
 }
 
 
@@ -267,8 +262,6 @@ function build_plugin()
 		display_error "Error: godot wasn't downloaded properly. Can't build plugin."
 		exit 1
 	fi
-
-	GODOT_VERSION=$(cat $GODOT_DIR/GODOT_VERSION)
 
 	# Clear target directories
 	rm -rf "$DEST_DIR"
@@ -288,7 +281,7 @@ function build_plugin()
 	# Move library
 	cp $LIB_DIR/$PLUGIN_NAME.{release,debug}.a "$DEST_DIR"
 
-	cp "$CONFIG_DIR"/*.gdip "$DEST_DIR"
+	cp "$IOS_CONFIG_DIR"/*.gdip "$DEST_DIR"
 }
 
 
@@ -378,30 +371,15 @@ function replace_extra_properties() {
 
 function create_zip_archive()
 {
-	if [[ ! -f "$GODOT_DIR/GODOT_VERSION" ]]
+	local zip_file_name="$PLUGIN_NAME-iOS-v$PLUGIN_VERSION.zip"
+
+	if [[ -e "$BUILD_DIR/release/$zip_file_name" ]]
 	then
-		display_error "Error: godot wasn't downloaded properly. Can't create zip archive."
-		exit 1
+		display_warning "deleting existing $zip_file_name file..."
+		rm $BUILD_DIR/release/$zip_file_name
 	fi
 
-	GODOT_VERSION=$(cat $GODOT_DIR/GODOT_VERSION)
-
-	if [[ -z $PLUGIN_VERSION ]]
-	then
-		godot_version_suffix="v$GODOT_VERSION"
-	else
-		godot_version_suffix="v$PLUGIN_VERSION"
-	fi
-
-	file_name="$PLUGIN_NAME-iOS-$godot_version_suffix.zip"
-
-	if [[ -e "$BUILD_DIR/release/$file_name" ]]
-	then
-		display_warning "deleting existing $file_name file..."
-		rm $BUILD_DIR/release/$file_name
-	fi
-
-	tmp_directory=$(mktemp -d)
+	local tmp_directory=$(mktemp -d)
 
 	display_status "preparing staging directory $tmp_directory"
 
@@ -409,6 +387,9 @@ function create_zip_archive()
 	then
 		mkdir -p $tmp_directory/addons/$PLUGIN_NAME
 		cp -r $ADDON_DIR/* $tmp_directory/addons/$PLUGIN_NAME
+
+		mkdir -p $tmp_directory/ios/plugins
+		cp $IOS_CONFIG_DIR/*.gdip $tmp_directory/ios/plugins
 
 		# Detect OS
 		if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -419,16 +400,17 @@ function create_zip_archive()
 			SED_INPLACE=(-i)
 		fi
 
-		for file in "$tmp_directory/addons/$PLUGIN_NAME"/*.{gd,cfg}; do
-			[[ -e "$file" ]] || continue
+		find "$tmp_directory" -type f \( -name '*.gd' -o -name '*.cfg' -o -name '*.gdip' \) | while IFS= read -r file; do
 			echo_green "Editing: $file"
 
 			# Escape variables to handle special characters
 			ESCAPED_PLUGIN_NAME=$(printf '%s' "$PLUGIN_NAME" | sed 's/[\/&]/\\&/g')
 			ESCAPED_PLUGIN_VERSION=$(printf '%s' "$PLUGIN_VERSION" | sed 's/[\/&]/\\&/g')
-			ESCAPED_PLUGIN_NODE_TYPE=$(printf '%s' "$PLUGIN_NODE_TYPE" | sed 's/[\/&]/\\&/g')
+			ESCAPED_PLUGIN_NODE_NAME=$(printf '%s' "$PLUGIN_NODE_NAME" | sed 's/[\/&]/\\&/g')
 			ESCAPED_PLUGIN_PACKAGE_NAME=$(printf '%s' "$PLUGIN_PACKAGE_NAME" | sed 's/[\/&]/\\&/g')
 			ESCAPED_ANDROID_DEPENDENCIES=$(printf '%s' "$ANDROID_DEPENDENCIES" | sed 's/[\/&]/\\&/g')
+			ESCAPED_IOS_INITIALIZATION_METHOD=$(printf '%s' "$IOS_INITIALIZATION_METHOD" | sed 's/[\/&]/\\&/g')
+			ESCAPED_IOS_DEINITIALIZATION_METHOD=$(printf '%s' "$IOS_DEINITIALIZATION_METHOD" | sed 's/[\/&]/\\&/g')
 			ESCAPED_IOS_FRAMEWORKS=$(merge_string_array "${IOS_FRAMEWORKS[@]}" | sed 's/[\/&]/\\&/g')
 			ESCAPED_IOS_EMBEDDED_FRAMEWORKS=$(merge_string_array "${IOS_EMBEDDED_FRAMEWORKS[@]}" | sed 's/[\/&]/\\&/g')
 			ESCAPED_IOS_LINKER_FLAGS=$(merge_string_array "${IOS_LINKER_FLAGS[@]}" | sed 's/[\/&]/\\&/g')
@@ -436,9 +418,11 @@ function create_zip_archive()
 			sed "${SED_INPLACE[@]}" -e "
 				s|@pluginName@|$ESCAPED_PLUGIN_NAME|g;
 				s|@pluginVersion@|$ESCAPED_PLUGIN_VERSION|g;
-				s|@pluginNodeName@|$ESCAPED_PLUGIN_NODE_TYPE|g;
+				s|@pluginNodeName@|$ESCAPED_PLUGIN_NODE_NAME|g;
 				s|@pluginPackage@|$ESCAPED_PLUGIN_PACKAGE_NAME|g;
-				s|@pluginDependencies@|$ESCAPED_ANDROID_DEPENDENCIES|g;
+				s|@androidDependencies@|$ESCAPED_ANDROID_DEPENDENCIES|g;
+				s|@iosInitializationMethod@|$ESCAPED_IOS_INITIALIZATION_METHOD|g;
+				s|@iosDeinitializationMethod@|$ESCAPED_IOS_DEINITIALIZATION_METHOD|g;
 				s|@iosFrameworks@|$ESCAPED_IOS_FRAMEWORKS|g;
 				s|@iosEmbeddedFrameworks@|$ESCAPED_IOS_EMBEDDED_FRAMEWORKS|g;
 				s|@iosLinkerFlags@|$ESCAPED_IOS_LINKER_FLAGS|g
@@ -454,20 +438,18 @@ function create_zip_archive()
 	mkdir -p $tmp_directory/ios/framework
 	find $PODS_DIR -iname '*.xcframework' -type d -exec cp -r {} $tmp_directory/ios/framework \;
 
-	mkdir -p $tmp_directory/ios/plugins
-	cp $CONFIG_DIR/*.gdip $tmp_directory/ios/plugins
 	cp $LIB_DIR/$PLUGIN_NAME.{release,debug}.a $tmp_directory/ios/plugins
 
 	mkdir -p $DEST_DIR
 
-	display_status "creating $file_name file..."
-	cd $tmp_directory; zip -yr $DEST_DIR/$file_name ./*; cd -
+	display_status "creating $zip_file_name file..."
+	cd $tmp_directory; zip -yr $DEST_DIR/$zip_file_name ./*; cd -
 
 	rm -rf $tmp_directory
 }
 
 
-while getopts "aA:bcgG:hHipPt:z:" option; do
+while getopts "aAbcgG:hHipPt:z" option; do
 	case $option in
 		h)
 			display_help
@@ -478,7 +460,6 @@ while getopts "aA:bcgG:hHipPt:z:" option; do
 			do_build=true
 			;;
 		A)
-			GODOT_VERSION=$OPTARG
 			do_download_godot=true
 			do_generate_headers=true
 			do_install_pods=true
@@ -494,7 +475,6 @@ while getopts "aA:bcgG:hHipPt:z:" option; do
 			do_remove_godot=true
 			;;
 		G)
-			GODOT_VERSION=$OPTARG
 			do_download_godot=true
 			;;
 		H)
@@ -522,10 +502,6 @@ while getopts "aA:bcgG:hHipPt:z:" option; do
 			fi
 			;;
 		z)
-			if ! [[ -z $OPTARG ]]
-			then
-				PLUGIN_VERSION=$OPTARG
-			fi
 			do_create_zip=true
 			;;
 		\?)
@@ -567,7 +543,7 @@ fi
 
 if [[ "$do_download_godot" == true ]]
 then
-	download_godot $GODOT_VERSION
+	download_godot
 fi
 
 if [[ "$do_generate_headers" == true ]]

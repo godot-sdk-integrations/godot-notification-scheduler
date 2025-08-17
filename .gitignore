@@ -5,10 +5,28 @@
 demo/addons
 demo/android
 demo/ios
+build/
 export.cfg
+
+# General
+*.lock
+*.log
+
+# Android
+.gradle/
+*.jar
+*.aar
+local.properties
 
 # Android Studio/IntelliJ
 .idea/
+
+# iOS
+*.d
+*.o
+*.dblite
+Pods/
+ios/godot/
 
 # Godot 4+ specific ignores
 demo/.godot/*

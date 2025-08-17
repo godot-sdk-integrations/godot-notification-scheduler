@@ -3,11 +3,11 @@
 ;
 
 [config]
-name="NotificationSchedulerPlugin"
-binary="NotificationSchedulerPlugin.a"
+name="@pluginName@"
+binary="@pluginName@.a"
 
-initialization="notification_scheduler_plugin_init"
-deinitialization="notification_scheduler_plugin_deinit"
+initialization="@iosInitializationMethod@"
+deinitialization="@iosDeinitializationMethod@"
 
 [dependencies]
 linked=[]
