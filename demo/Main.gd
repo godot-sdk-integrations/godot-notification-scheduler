@@ -27,11 +27,22 @@ extends Node
 @onready var _badge_count_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/ValueLabel as Label
 @onready var _badge_count_checkbox: CheckBox = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/CheckBox as CheckBox
 @onready var _id_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel as Label
+@onready var _android_texture_rect: TextureRect = $CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer/AndroidTextureRect as TextureRect
+@onready var _ios_texture_rect: TextureRect = $CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer/iOSTextureRect as TextureRect
+
+var _active_texture_rect: TextureRect
 
 var _notification_id: int = 1
 
 
 func _ready() -> void:
+	if OS.has_feature("ios"):
+		_android_texture_rect.hide()
+		_active_texture_rect = _ios_texture_rect
+	else:
+		_ios_texture_rect.hide()
+		_active_texture_rect = _android_texture_rect
+
 	_delay_value_label.text = str(int(_delay_slider.value))
 	_interval_value_label.text = str(int(_interval_slider.value))
 	_badge_count_value_label.text = str(int(_badge_count_slider.value))

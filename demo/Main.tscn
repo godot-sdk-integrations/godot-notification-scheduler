@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://bxglp6e2xq2r7"]
+[gd_scene load_steps=5 format=3 uid="uid://bxglp6e2xq2r7"]
 
 [ext_resource type="Script" uid="uid://bd23rk21snlwn" path="res://Main.gd" id="1_r6ksj"]
 [ext_resource type="Texture2D" uid="uid://b11m8fw2showh" path="res://assets/notification-scheduler-android.png" id="2_7rmrj"]
-[ext_resource type="Script" uid="uid://o8yuf6djrtal" path="res://addons/NotificationSchedulerPlugin/NotificationScheduler.gd" id="3_guixi"]
+[ext_resource type="Texture2D" uid="uid://bvfau1jubfqcm" path="res://assets/notification-scheduler-ios.png" id="3_cm0pq"]
+[ext_resource type="Script" uid="uid://dksl1q3dxc2a2" path="res://addons/NotificationSchedulerPlugin/NotificationScheduler.gd" id="3_guixi"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_r6ksj")
@@ -20,10 +21,21 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="AndroidTextureRect" type="TextureRect" parent="CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(0, 128)
 layout_mode = 2
 texture = ExtResource("2_7rmrj")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="iOSTextureRect" type="TextureRect" parent="CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+texture = ExtResource("3_cm0pq")
 expand_mode = 3
 stretch_mode = 5
 
