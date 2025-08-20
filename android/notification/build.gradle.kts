@@ -108,7 +108,7 @@ tasks {
 			"resultClass" to (project.extra["resultActivityClassPath"] as String),
 			"notificationReceiverClass" to (project.extra["notificationReceiverClassPath"] as String),
 			"cancelReceiverClass" to (project.extra["cancelReceiverClassPath"] as String),
-			"pluginDependencies" to pluginDependencies.joinToString(", ") { "\"$it\"" },
+			"androidDependencies" to androidDependencies.joinToString(", ") { "\"$it\"" },
 			"iosFrameworks" to (project.extra["iosFrameworks"] as String)
 				.split(",")
 				.map { it.trim() }
@@ -148,10 +148,15 @@ tasks {
 	register<Zip>("packageDistribution") {
 		archiveFileName.set("${project.extra["pluginArchive"]}")
 		destinationDirectory.set(layout.buildDirectory.dir("dist"))
-		exclude("**/*.uid")
-		exclude("**/*.import")
 		from("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}") {
 			into("${project.extra["pluginName"]}-root/addons/${project.extra["pluginName"]}")
+			exclude("**/*.uid")
+			exclude("**/*.import")
+		}
+		from("${project.extra["demoAssetsDirectory"]}/${project.extra["pluginName"]}") {
+			into("${project.extra["pluginName"]}-root/assets/${project.extra["pluginName"]}")
+			exclude("**/*.uid")
+			exclude("**/*.import")
 		}
 		doLast {
 			println("Zip archive created at: ${archiveFile.get().asFile.path}")
