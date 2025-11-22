@@ -4,31 +4,30 @@
 #
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT_DIR=$(realpath $SCRIPT_DIR/../..)
 
 function display_help()
 {
 	echo
-	$ROOT_DIR/script/echocolor.sh -y "The " -Y "$0 script" -y " runs specified command for specified number of seconds,"
-	$ROOT_DIR/script/echocolor.sh -y "then stops the command and exits."
+	$SCRIPT_DIR/echocolor.sh -y "The " -Y "$0 script" -y " runs specified command for specified number of seconds,"
+	$SCRIPT_DIR/echocolor.sh -y "then stops the command and exits."
 	echo
-	$ROOT_DIR/script/echocolor.sh -Y "Syntax:"
-	$ROOT_DIR/script/echocolor.sh -y "	$0 [-h] [-d <directory to run command in>] -t <timeout in seconds> -c <command to run>"
+	$SCRIPT_DIR/echocolor.sh -Y "Syntax:"
+	$SCRIPT_DIR/echocolor.sh -y "	$0 [-h] [-d <directory to run command in>] -t <timeout in seconds> -c <command to run>"
 	echo
-	$ROOT_DIR/script/echocolor.sh -Y "Options:"
-	$ROOT_DIR/script/echocolor.sh -y "	h	display usage information"
-	$ROOT_DIR/script/echocolor.sh -y "	t	timeout value in seconds"
-	$ROOT_DIR/script/echocolor.sh -y "	c	command to run"
-	$ROOT_DIR/script/echocolor.sh -y "	d	run command in specified directory"
+	$SCRIPT_DIR/echocolor.sh -Y "Options:"
+	$SCRIPT_DIR/echocolor.sh -y "	h	display usage information"
+	$SCRIPT_DIR/echocolor.sh -y "	t	timeout value in seconds"
+	$SCRIPT_DIR/echocolor.sh -y "	c	command to run"
+	$SCRIPT_DIR/echocolor.sh -y "	d	run command in specified directory"
 	echo
-	$ROOT_DIR/script/echocolor.sh -Y "Examples:"
-	$ROOT_DIR/script/echocolor.sh -y "		$> $0 -t 10 -c 'my_command'"
+	$SCRIPT_DIR/echocolor.sh -Y "Examples:"
+	$SCRIPT_DIR/echocolor.sh -y "		$> $0 -t 10 -c 'my_command'"
 	echo
 }
 
 function display_error()
 {
-	$ROOT_DIR/script/echocolor.sh -r "$1"
+	$SCRIPT_DIR/echocolor.sh -r "$1"
 }
 
 min_expected_arguments=1

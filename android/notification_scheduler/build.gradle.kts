@@ -2,8 +2,10 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-import org.apache.tools.ant.filters.ReplaceTokens
 import com.android.build.gradle.internal.api.LibraryVariantOutputImpl
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
 
 plugins {
 	alias(libs.plugins.android.library)
@@ -42,7 +44,7 @@ android {
 
 	buildToolsVersion = libs.versions.buildTools.get()
 
-	// ✅ Force AAR filenames to match original case and format
+	// Force AAR filenames to match original case and format
 	libraryVariants.all {
 		outputs.all {
 			val outputImpl = this as LibraryVariantOutputImpl
@@ -109,6 +111,7 @@ tasks {
 			"notificationReceiverClass" to (project.extra["notificationReceiverClassPath"] as String),
 			"cancelReceiverClass" to (project.extra["cancelReceiverClassPath"] as String),
 			"androidDependencies" to androidDependencies.joinToString(", ") { "\"$it\"" },
+			"iosPlatformVersion" to (project.extra["iosPlatformVersion"] as String),
 			"iosFrameworks" to (project.extra["iosFrameworks"] as String)
 				.split(",")
 				.map { it.trim() }
@@ -136,9 +139,27 @@ tasks {
 	}
 
 	register<de.undercouch.gradle.tasks.download.Download>("downloadGodotAar") {
+		val destFile = file("${project.rootDir}/libs/${project.extra["godotAarFile"]}")
+
 		src(project.extra["godotAarUrl"] as String)
-		dest(file("${project.rootDir}/libs/${project.extra["godotAarFile"]}"))
+		dest(destFile)
 		overwrite(false)
+
+		onlyIf {
+			val exists = destFile.exists() && destFile.length() > 0
+			if (exists) {
+				println("[DEBUG] File already exists and is non-empty: ${destFile.absolutePath} (${destFile.length()} bytes)")
+				println("[DEBUG] Skipping download.")
+			} else {
+				if (destFile.exists()) {
+					println("[DEBUG] File exists but is empty: ${destFile.absolutePath}")
+				} else {
+					println("[DEBUG] File not found: ${destFile.absolutePath}")
+				}
+				println("[DEBUG] Proceeding with download...")
+			}
+			!exists // run task only if file does NOT exist or is empty
+		}
 	}
 
 	named("preBuild") {

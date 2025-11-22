@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "godot-notification-scheduler-plugin"
-include(":notification")
+include(":notification_scheduler")
