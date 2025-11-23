@@ -3,7 +3,6 @@
 # © 2024-present https://github.com/cengiz-pz
 #
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AS_ARRAY=false
 QUOTE_ITEMS=false
 SINGLE_LINE_ARRAY=false

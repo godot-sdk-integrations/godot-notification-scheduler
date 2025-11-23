@@ -26,7 +26,7 @@ extra.apply {
 
 	// Godot
 	set("godotVersion", commonProperties.getProperty("godotVersion"))
-	set("releaseType", commonProperties.getProperty("releaseType"))
+	set("releaseType", commonProperties.getProperty("godotReleaseType"))
 	set("godotAarUrl", "https://github.com/godotengine/godot-builds/releases/download/${get("godotVersion")}-${get("releaseType")}/godot-lib.${get("godotVersion")}.${get("releaseType")}.template_release.aar")
 	set("godotAarFile", "godot-lib-${get("godotVersion")}.${get("releaseType")}.aar")
 
@@ -39,6 +39,7 @@ extra.apply {
 	set("assetsDirectory", "../assets")
 
 	// iOS
+	set("iosPlatformVersion", iosProperties.getProperty("platform_version"))
 	set("iosFrameworks", iosProperties.getProperty("frameworks"))
 	set("iosEmbeddedFrameworks", iosProperties.getProperty("embedded_frameworks"))
 	set("iosLinkerFlags", iosProperties.getProperty("flags"))
