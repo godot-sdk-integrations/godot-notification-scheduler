@@ -15,9 +15,10 @@ ios/godot/
 release/
 
 # Godot-specific
+.import/
 demo/.godot/*
 !demo/.godot/uid_cache.bin
-.import/
+demo/assets/*Plugin
 
 # Android-specific
 .gradle/

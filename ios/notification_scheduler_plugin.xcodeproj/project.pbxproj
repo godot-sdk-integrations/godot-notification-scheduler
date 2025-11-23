@@ -7,9 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		07C2814F2ED1D55200B521E5 /* nsp_service.mm in Sources */ = {isa = PBXBuildFile; fileRef = 07C2814E2ED1D55200B521E5 /* nsp_service.mm */; };
+		07DE30A52ED1D4C700268185 /* channel_data.mm in Sources */ = {isa = PBXBuildFile; fileRef = 07DE309A2ED1D4C700268185 /* channel_data.mm */; };
+		07DE30A72ED1D4C700268185 /* nsp_converter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 07DE30A22ED1D4C700268185 /* nsp_converter.mm */; };
+		07DE30A92ED1D4C700268185 /* notification_data.mm in Sources */ = {isa = PBXBuildFile; fileRef = 07DE309E2ED1D4C700268185 /* notification_data.mm */; };
 		90CAAA9924E71FF10013969F /* notification_scheduler_plugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = 90CAAA9824E71FF10013969F /* notification_scheduler_plugin.mm */; };
 		90CAAAA424E724C50013969F /* notification_scheduler_plugin_implementation.mm in Sources */ = {isa = PBXBuildFile; fileRef = 90CAAAA324E724C50013969F /* notification_scheduler_plugin_implementation.mm */; };
-		CFD0C04F1E6C12D297525620 /* Pods_NotificationSchedulerPlugin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FAE4B271722D88CED22C137 /* Pods_NotificationSchedulerPlugin.framework */; };
+		94A1B0B2910D06DA0F4D3D3C /* Pods_notification_scheduler_plugin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 380C444E6383B0C8ACA7CA7D /* Pods_notification_scheduler_plugin.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,14 +29,25 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		3FAE4B271722D88CED22C137 /* Pods_NotificationSchedulerPlugin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationSchedulerPlugin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		073B52C32ECF241C0063663B /* notification_scheduler_plugin-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "notification_scheduler_plugin-Bridging-Header.h"; sourceTree = "<group>"; };
+		07C2814D2ED1D55200B521E5 /* nsp_service.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nsp_service.h; sourceTree = "<group>"; };
+		07C2814E2ED1D55200B521E5 /* nsp_service.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = nsp_service.mm; sourceTree = "<group>"; };
+		07DE30982ED1D4C700268185 /* channel_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = channel_data.h; sourceTree = "<group>"; };
+		07DE309A2ED1D4C700268185 /* channel_data.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = channel_data.mm; sourceTree = "<group>"; };
+		07DE309C2ED1D4C700268185 /* notification_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = notification_data.h; sourceTree = "<group>"; };
+		07DE309E2ED1D4C700268185 /* notification_data.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = notification_data.mm; sourceTree = "<group>"; };
+		07DE30A12ED1D4C700268185 /* nsp_converter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nsp_converter.h; sourceTree = "<group>"; };
+		07DE30A22ED1D4C700268185 /* nsp_converter.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = nsp_converter.mm; sourceTree = "<group>"; };
+		1A3D1E30D9DC57319C20B62B /* Pods-notification_scheduler_plugin.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification_scheduler_plugin.release.xcconfig"; path = "Target Support Files/Pods-notification_scheduler_plugin/Pods-notification_scheduler_plugin.release.xcconfig"; sourceTree = "<group>"; };
+		380C444E6383B0C8ACA7CA7D /* Pods_notification_scheduler_plugin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_notification_scheduler_plugin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		403D7C7BCFBA671DEF15AE95 /* Pods-notification_scheduler_plugin.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification_scheduler_plugin.debug.xcconfig"; path = "Target Support Files/Pods-notification_scheduler_plugin/Pods-notification_scheduler_plugin.debug.xcconfig"; sourceTree = "<group>"; };
 		90CAAA9424E71FF10013969F /* libnotification_scheduler_plugin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libnotification_scheduler_plugin.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		90CAAA9724E71FF10013969F /* notification_scheduler_plugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = notification_scheduler_plugin.h; sourceTree = "<group>"; };
 		90CAAA9824E71FF10013969F /* notification_scheduler_plugin.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = notification_scheduler_plugin.mm; sourceTree = "<group>"; };
 		90CAAAA324E724C50013969F /* notification_scheduler_plugin_implementation.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = notification_scheduler_plugin_implementation.mm; sourceTree = "<group>"; };
 		90CAAAA524E724D00013969F /* notification_scheduler_plugin_implementation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = notification_scheduler_plugin_implementation.h; sourceTree = "<group>"; };
-		BDBA7A19507BA024A49C23F5 /* Pods-NotificationSchedulerPlugin.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationSchedulerPlugin.debug.xcconfig"; path = "Target Support Files/Pods-NotificationSchedulerPlugin/Pods-NotificationSchedulerPlugin.debug.xcconfig"; sourceTree = "<group>"; };
-		C9281C61E11BF8A9C413E556 /* Pods-NotificationSchedulerPlugin.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationSchedulerPlugin.release.xcconfig"; path = "Target Support Files/Pods-NotificationSchedulerPlugin/Pods-NotificationSchedulerPlugin.release.xcconfig"; sourceTree = "<group>"; };
+		AAE936A0178A8EA9BB753CEA /* Pods-notification_scheduler_plugin_implementation.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification_scheduler_plugin_implementation.debug.xcconfig"; path = "Target Support Files/Pods-inapp_review_plugin/Pods-notification_scheduler_plugin_implementation.debug.xcconfig"; sourceTree = "<group>"; };
+		D5F7A9D28867FD798F31BF3B /* Pods-notification_scheduler_plugin_implementation.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification_scheduler_plugin_implementation.release.xcconfig"; path = "Target Support Files/Pods-inapp_review_plugin/Pods-notification_scheduler_plugin_implementation.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,20 +55,42 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CFD0C04F1E6C12D297525620 /* Pods_NotificationSchedulerPlugin.framework in Frameworks */,
+				94A1B0B2910D06DA0F4D3D3C /* Pods_notification_scheduler_plugin.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		07DE30A02ED1D4C700268185 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				07DE30982ED1D4C700268185 /* channel_data.h */,
+				07DE309A2ED1D4C700268185 /* channel_data.mm */,
+				07DE309C2ED1D4C700268185 /* notification_data.h */,
+				07DE309E2ED1D4C700268185 /* notification_data.mm */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		66EA7AD27171A8F93A267403 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				403D7C7BCFBA671DEF15AE95 /* Pods-notification_scheduler_plugin.debug.xcconfig */,
+				1A3D1E30D9DC57319C20B62B /* Pods-notification_scheduler_plugin.release.xcconfig */,
+				AAE936A0178A8EA9BB753CEA /* Pods-notification_scheduler_plugin_implementation.debug.xcconfig */,
+				D5F7A9D28867FD798F31BF3B /* Pods-notification_scheduler_plugin_implementation.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		90CAAA8B24E71FF10013969F = {
 			isa = PBXGroup;
 			children = (
-				90CAAA9624E71FF10013969F /* NotificationSchedulerPlugin */,
+				90CAAA9624E71FF10013969F /* notification_scheduler */,
 				90CAAA9524E71FF10013969F /* Products */,
 				90CAAAA824E72A8A0013969F /* Frameworks */,
-				996C9B8392478850934036E1 /* Pods */,
+				66EA7AD27171A8F93A267403 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -65,43 +102,39 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		90CAAA9624E71FF10013969F /* NotificationSchedulerPlugin */ = {
+		90CAAA9624E71FF10013969F /* notification_scheduler */ = {
 			isa = PBXGroup;
 			children = (
+				07C2814D2ED1D55200B521E5 /* nsp_service.h */,
+				07C2814E2ED1D55200B521E5 /* nsp_service.mm */,
+				07DE30A02ED1D4C700268185 /* model */,
+				07DE30A12ED1D4C700268185 /* nsp_converter.h */,
+				07DE30A22ED1D4C700268185 /* nsp_converter.mm */,
+				073B52C32ECF241C0063663B /* notification_scheduler_plugin-Bridging-Header.h */,
 				90CAAA9724E71FF10013969F /* notification_scheduler_plugin.h */,
 				90CAAA9824E71FF10013969F /* notification_scheduler_plugin.mm */,
 				90CAAAA524E724D00013969F /* notification_scheduler_plugin_implementation.h */,
 				90CAAAA324E724C50013969F /* notification_scheduler_plugin_implementation.mm */,
 			);
-			path = NotificationSchedulerPlugin;
+			path = notification_scheduler;
 			sourceTree = "<group>";
 		};
 		90CAAAA824E72A8A0013969F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3FAE4B271722D88CED22C137 /* Pods_NotificationSchedulerPlugin.framework */,
+				380C444E6383B0C8ACA7CA7D /* Pods_notification_scheduler_plugin.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		996C9B8392478850934036E1 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				BDBA7A19507BA024A49C23F5 /* Pods-NotificationSchedulerPlugin.debug.xcconfig */,
-				C9281C61E11BF8A9C413E556 /* Pods-NotificationSchedulerPlugin.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		90CAAA9324E71FF10013969F /* NotificationSchedulerPlugin */ = {
+		90CAAA9324E71FF10013969F /* notification_scheduler_plugin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90CAAA9D24E71FF10013969F /* Build configuration list for PBXNativeTarget "NotificationSchedulerPlugin" */;
+			buildConfigurationList = 90CAAA9D24E71FF10013969F /* Build configuration list for PBXNativeTarget "notification_scheduler_plugin" */;
 			buildPhases = (
-				483A666707EB07D386002AB8 /* [CP] Check Pods Manifest.lock */,
+				DD9BF3CC2255FDE9321FE7D1 /* [CP] Check Pods Manifest.lock */,
 				90CAAA9024E71FF10013969F /* Sources */,
 				90CAAA9124E71FF10013969F /* Frameworks */,
 				90CAAA9224E71FF10013969F /* CopyFiles */,
@@ -110,8 +143,8 @@
 			);
 			dependencies = (
 			);
-			name = NotificationSchedulerPlugin;
-			productName = NotificationSchedulerPlugin;
+			name = notification_scheduler_plugin;
+			productName = notification_scheduler_plugin;
 			productReference = 90CAAA9424E71FF10013969F /* libnotification_scheduler_plugin.a */;
 			productType = "com.apple.product-type.library.static";
 		};
@@ -126,10 +159,11 @@
 				TargetAttributes = {
 					90CAAA9324E71FF10013969F = {
 						CreatedOnToolsVersion = 11.6;
+						LastSwiftMigration = 1230;
 					};
 				};
 			};
-			buildConfigurationList = 90CAAA8F24E71FF10013969F /* Build configuration list for PBXProject "NotificationSchedulerPlugin" */;
+			buildConfigurationList = 90CAAA8F24E71FF10013969F /* Build configuration list for PBXProject "notification_scheduler_plugin" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -142,13 +176,13 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				90CAAA9324E71FF10013969F /* NotificationSchedulerPlugin */,
+				90CAAA9324E71FF10013969F /* notification_scheduler_plugin */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		483A666707EB07D386002AB8 /* [CP] Check Pods Manifest.lock */ = {
+		DD9BF3CC2255FDE9321FE7D1 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -163,7 +197,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NotificationSchedulerPlugin-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-notification_scheduler_plugin-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -178,7 +212,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				90CAAAA424E724C50013969F /* notification_scheduler_plugin_implementation.mm in Sources */,
+				07DE30A52ED1D4C700268185 /* channel_data.mm in Sources */,
+				07DE30A72ED1D4C700268185 /* nsp_converter.mm in Sources */,
+				07DE30A92ED1D4C700268185 /* notification_data.mm in Sources */,
 				90CAAA9924E71FF10013969F /* notification_scheduler_plugin.mm in Sources */,
+				07C2814F2ED1D55200B521E5 /* nsp_service.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,7 +229,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -235,7 +273,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -249,7 +287,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -287,7 +325,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -297,22 +335,15 @@
 		};
 		90CAAA9E24E71FF10013969F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BDBA7A19507BA024A49C23F5 /* Pods-NotificationSchedulerPlugin.debug.xcconfig */;
+			baseConfigurationReference = 403D7C7BCFBA671DEF15AE95 /* Pods-notification_scheduler_plugin.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				HEADER_SEARCH_PATHS = (
+				HEADER_SEARCH_PATHS = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/godot",
-					"$(SRCROOT)/godot/main",
-					"$(SRCROOT)/godot/core",
-					"$(SRCROOT)/godot/core/os",
-					"$(SRCROOT)/godot/servers",
-					"$(SRCROOT)/godot/platform",
-					"$(SRCROOT)/godot/platform/ios",
-					"$(SRCROOT)/godot/modules",
-					"$(SRCROOT)/godot/scene",
-					"$(SRCROOT)/godot/drivers",
-					"$(SRCROOT)/godot/trirdparty",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -320,7 +351,6 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
-					"-fcxx-modules",
 					"-g",
 					"-DDEBUG",
 					"-DDEBUG_ENABLED",
@@ -328,35 +358,76 @@
 					"-DDISABLE_FORCED_INLINE",
 					"-DTYPED_METHOD_BIND",
 					"-fmodules",
+					"-fobjc-arc",
+					"-fmessage-length=0",
+					"-fno-strict-aliasing",
+					"-fdiagnostics-print-source-range-info",
+					"-fdiagnostics-show-category=id",
+					"-fdiagnostics-parseable-fixits",
+					"-fpascal-strings",
+					"-fblocks",
+					"-fvisibility=hidden",
+					"-MMD",
+					"-MT",
+					"-fno-exceptions",
+					"-Wno-ambiguous-macro",
+					"-Wall",
+					"-Werror=return-type",
+					"-DPTRCALL_ENABLED",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fcxx-modules",
+					"-gdwarf-2",
+					"-O0",
+					"-DDEBUG_MEMORY_ALLOC",
+					"-DDISABLE_FORCED_INLINE",
+					"-D_DEBUG",
+					"-DDEBUG=1",
+					"-DDEBUG_ENABLED",
+					"-DVERSION_4_0",
+					"-DIOS_ENABLED",
+					"-DNEED_LONG_INT",
+					"-DLIBYUV_DISABLE_NEON",
+					"-DIPHONE_ENABLED",
+					"-DUNIX_ENABLED",
+					"-DCOREAUDIO_ENABLED",
+					"-isystem",
+					"$(SRCROOT)/godot",
+					"-isystem",
+					"$(SRCROOT)/godot/drivers/apple_embedded",
+					"-isystem",
+					"$(SRCROOT)/godot/platform/ios",
 				);
 				OTHER_LDFLAGS = (
-					"$(inherited)",
 					"-ObjC",
+					"-framework",
+					os,
+					"-lswiftCore",
+					"-lswiftDispatch",
+					"-lswiftObjectiveC",
+					"-lswiftUIKit",
+					"-lswiftFoundation",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "deeplink/notification_scheduler_plugin-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		90CAAA9F24E71FF10013969F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C9281C61E11BF8A9C413E556 /* Pods-NotificationSchedulerPlugin.release.xcconfig */;
+			baseConfigurationReference = 1A3D1E30D9DC57319C20B62B /* Pods-notification_scheduler_plugin.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				HEADER_SEARCH_PATHS = (
+				HEADER_SEARCH_PATHS = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/godot",
-					"$(SRCROOT)/godot/main",
-					"$(SRCROOT)/godot/core",
-					"$(SRCROOT)/godot/core/os",
-					"$(SRCROOT)/godot/servers",
-					"$(SRCROOT)/godot/platform",
-					"$(SRCROOT)/godot/platform/ios",
-					"$(SRCROOT)/godot/modules",
-					"$(SRCROOT)/godot/scene",
-					"$(SRCROOT)/godot/drivers",
-					"$(SRCROOT)/godot/trirdparty",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -364,15 +435,58 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
-					"-fcxx-modules",
 					"-fmodules",
+					"-fobjc-arc",
+					"-fmessage-length=0",
+					"-fno-strict-aliasing",
+					"-fdiagnostics-print-source-range-info",
+					"-fdiagnostics-show-category=id",
+					"-fdiagnostics-parseable-fixits",
+					"-fpascal-strings",
+					"-fblocks",
+					"-fvisibility=hidden",
+					"-MMD",
+					"-MT",
+					"-fno-exceptions",
+					"-Wno-ambiguous-macro",
+					"-Wall",
+					"-Werror=return-type",
+					"-DPTRCALL_ENABLED",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fcxx-modules",
+					"-O2",
+					"-ftree-vectorize",
+					"-DNDEBUG",
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-DVERSION_4_0",
+					"-DIOS_ENABLED",
+					"-DNEED_LONG_INT",
+					"-DLIBYUV_DISABLE_NEON",
+					"-DIPHONE_ENABLED",
+					"-DUNIX_ENABLED",
+					"-DCOREAUDIO_ENABLED",
+					"-isystem",
+					"$(SRCROOT)/godot",
+					"-isystem",
+					"$(SRCROOT)/godot/drivers/apple_embedded",
+					"-isystem",
+					"$(SRCROOT)/godot/platform/ios",
 				);
 				OTHER_LDFLAGS = (
-					"$(inherited)",
 					"-ObjC",
+					"-framework",
+					os,
+					"-lswiftCore",
+					"-lswiftDispatch",
+					"-lswiftObjectiveC",
+					"-lswiftUIKit",
+					"-lswiftFoundation",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "deeplink/notification_scheduler_plugin-Bridging-Header.h";
+				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -380,7 +494,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		90CAAA8F24E71FF10013969F /* Build configuration list for PBXProject "NotificationSchedulerPlugin" */ = {
+		90CAAA8F24E71FF10013969F /* Build configuration list for PBXProject "notification_scheduler_plugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				90CAAA9B24E71FF10013969F /* Debug */,
@@ -389,7 +503,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90CAAA9D24E71FF10013969F /* Build configuration list for PBXNativeTarget "NotificationSchedulerPlugin" */ = {
+		90CAAA9D24E71FF10013969F /* Build configuration list for PBXNativeTarget "notification_scheduler_plugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				90CAAA9E24E71FF10013969F /* Debug */,

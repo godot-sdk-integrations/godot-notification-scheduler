@@ -87,10 +87,10 @@ fi
 
 if [[ ! -d "$target_directory" ]]
 then
-	display_status "creating target directory $target_directory"
+	display_status "Creating target directory $target_directory"
 	mkdir -p $target_directory
 fi
 
-display_status "installing $zip_file_path in $target_directory"
+display_status "Installing $zip_file_path in $target_directory"
 
 unzip -o $zip_file_path -d $target_directory

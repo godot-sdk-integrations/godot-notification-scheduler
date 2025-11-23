@@ -170,12 +170,12 @@ tasks {
 		archiveFileName.set("${project.extra["pluginArchive"]}")
 		destinationDirectory.set(layout.buildDirectory.dir("dist"))
 		from("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}") {
-			into("${project.extra["pluginName"]}-root/addons/${project.extra["pluginName"]}")
+			into("addons/${project.extra["pluginName"]}")
 			exclude("**/*.uid")
 			exclude("**/*.import")
 		}
 		from("${project.extra["demoAssetsDirectory"]}/${project.extra["pluginName"]}") {
-			into("${project.extra["pluginName"]}-root/assets/${project.extra["pluginName"]}")
+			into("assets/${project.extra["pluginName"]}")
 			exclude("**/*.uid")
 			exclude("**/*.import")
 		}

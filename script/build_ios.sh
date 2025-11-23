@@ -50,7 +50,7 @@ while IFS= read -r line; do
 done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE valid_godot_versions)
 EXTRA_PROPERTIES=()
 while IFS= read -r line; do
-	EXTRA_PROPERTIES+=($line)
+	EXTRA_PROPERTIES+=("$line")
 done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE extra_properties)
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
@@ -156,7 +156,7 @@ function remove_godot_directory()
 {
 	if [[ -d "$GODOT_DIR" ]]
 	then
-		display_status "removing '$GODOT_DIR' directory..."
+		display_status "Removing '$GODOT_DIR' directory..."
 		rm -rf $GODOT_DIR
 	else
 		display_warning "'$GODOT_DIR' directory not found!"
@@ -168,12 +168,12 @@ function clean_plugin_build()
 {
 	if [[ -d "$BUILD_DIR" ]]
 	then
-		display_status "removing '$BUILD_DIR' directory..."
+		display_status "Removing '$BUILD_DIR' directory..."
 		rm -rf $BUILD_DIR
 	else
 		display_warning "'$BUILD_DIR' directory not found!"
 	fi
-	display_status "cleaning generated files..."
+	display_status "Cleaning generated files..."
 	find . -name "*.d" -type f -delete
 	find . -name "*.o" -type f -delete
 }
@@ -183,7 +183,7 @@ function remove_pods()
 {
 	if [[ -d $PODS_DIR ]]
 	then
-		display_status "removing '$PODS_DIR' directory..."
+		display_status "Removing '$PODS_DIR' directory..."
 		rm -rf $PODS_DIR
 	else
 		display_warning "Warning: '$PODS_DIR' directory does not exist"
@@ -191,7 +191,7 @@ function remove_pods()
 
 	if [[ -f $IOS_DIR/Podfile.lock ]]
 	then
-		display_status "removing '$IOS_DIR/Podfile.lock' file..."
+		display_status "Removing '$IOS_DIR/Podfile.lock' file..."
 		rm -f $IOS_DIR/Podfile.lock
 	else
 		display_warning "Warning: '$IOS_DIR/Podfile.lock' file does not exist"
@@ -262,17 +262,17 @@ function generate_godot_headers()
 		exit 1
 	fi
 
-	display_status "starting godot build to generate godot headers..."
+	display_status "Starting Godot build to generate Godot headers..."
 
 	$SCRIPT_DIR/run_with_timeout.sh -t $BUILD_TIMEOUT -c "scons platform=ios target=template_release" -d $GODOT_DIR || true
 
-	display_status "terminated godot build after $BUILD_TIMEOUT seconds..."
+	display_status "Terminated Godot build after $BUILD_TIMEOUT seconds..."
 }
 
 
 function install_pods()
 {
-	display_status "installing pods..."
+	display_status "Installing pods..."
 	pod install --repo-update --project-directory=$IOS_DIR/ || true
 }
 
@@ -303,6 +303,7 @@ function build_plugin()
 	mkdir -p $FRAMEWORK_DIR
 	mkdir -p $LIB_DIR
 
+	display_status "Building iOS release"
 	xcodebuild archive \
 		-project "$IOS_DIR/$PROJECT" \
 		-scheme $SCHEME \
@@ -310,6 +311,7 @@ function build_plugin()
 		-sdk iphoneos \
 		SKIP_INSTALL=NO
 
+	display_status "Building iOS simulator release"
 	xcodebuild archive \
 		-project "$IOS_DIR/$PROJECT" \
 		-scheme $SCHEME \
@@ -317,6 +319,7 @@ function build_plugin()
 		-sdk iphonesimulator \
 		SKIP_INSTALL=NO
 
+	display_status "Building iOS debug"
 	xcodebuild archive \
 		-project "$IOS_DIR/$PROJECT" \
 		-scheme $SCHEME \
@@ -325,6 +328,7 @@ function build_plugin()
 		SKIP_INSTALL=NO \
 		GCC_PREPROCESSOR_DEFINITIONS="DEBUG_ENABLED=1"
 
+	display_status "Building iOS simulator debug"
 	xcodebuild archive \
 		-project "$IOS_DIR/$PROJECT" \
 		-scheme $SCHEME \
@@ -348,11 +352,13 @@ function build_plugin()
 		rm -rf $FRAMEWORK_DIR/${OUT}.debug.xcframework
 	fi
 
+	display_status "Creating release framework"
 	xcodebuild -create-xcframework \
 		-library "$LIB_DIR/ios_release.xcarchive/Products/usr/local/lib/${OUT}.a" \
 		-library "$LIB_DIR/sim_release.xcarchive/Products/usr/local/lib/${OUT}.a" \
 		-output "$FRAMEWORK_DIR/${OUT}.release.xcframework"
 
+	display_status "Creating debug framework"
 	xcodebuild -create-xcframework \
 		-library "$LIB_DIR/ios_debug.xcarchive/Products/usr/local/lib/${OUT}.a" \
 		-library "$LIB_DIR/sim_debug.xcarchive/Products/usr/local/lib/${OUT}.a" \
@@ -405,14 +411,18 @@ function replace_extra_properties()
 
 		# Create pattern with @ delimiters
 		local pattern="@${key}@"
-
-		# Escape special characters for grep and sed, including dots
+		
+		# Escape pattern for grep/sed
 		local escaped_pattern
 		escaped_pattern=$(printf '%s' "$pattern" | sed 's/[][\\^$.*]/\\&/g' | sed 's/\./\\./g')
 
+		# Escape replacement value for sed - We escape the pipe delimiter (|) AND the dot (.) 
+		local escaped_value
+		escaped_value=$(printf '%s' "$value" | sed 's/[|.]/\\&/g')
+
 		# Count occurrences of the pattern before replacement
 		local count
-		count=$(LC_ALL=C grep -o "$escaped_pattern" "$file_path" 2>grep_error.log | wc -l | tr -d '[:space:]')
+		count=$(LC_ALL=C grep -o "$escaped_pattern" "$file_path" 2>grep_error.log || true | wc -l | tr -d '[:space:]')
 		local grep_status=$?
 		if [[ $grep_status -ne 0 && $grep_status -ne 1 ]]; then
 			echo_blue "Debug: grep exit status: $grep_status"
@@ -429,7 +439,7 @@ function replace_extra_properties()
 		fi
 
 		# Replace all occurrences in file, use empty backup extension for macOS
-		if ! LC_ALL=C sed -i '' "s|$escaped_pattern|$value|g" "$file_path" 2>sed_error.log; then
+		if ! LC_ALL=C sed -i '' "s|$escaped_pattern|$escaped_value|g" "$file_path" 2>sed_error.log; then
 			echo_blue "Debug: sed error output: $(cat sed_error.log)"
 			display_error "Error: Failed to replace '$pattern' in '$file_path'"
 			exit 1
@@ -453,7 +463,7 @@ function create_zip_archive()
 
 	local tmp_directory=$(mktemp -d)
 
-	display_status "preparing staging directory $tmp_directory"
+	display_status "Preparing staging directory $tmp_directory"
 
 	if [[ -d "$ADDON_DIR" ]]
 	then
@@ -537,7 +547,7 @@ function create_zip_archive()
 
 	mkdir -p $DEST_DIR
 
-	display_status "creating $zip_file_name file..."
+	display_status "Creating $zip_file_name file..."
 	cd $tmp_directory; zip -yr $DEST_DIR/$zip_file_name ./*; cd -
 
 	rm -rf $tmp_directory
