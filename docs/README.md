@@ -1,12 +1,12 @@
 <p align="center">
-	<img width="256" height="256" src="demo/assets/notification-scheduler-android.png">
+	<img width="256" height="256" src="../demo/assets/notification-scheduler-android.png">
 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<img width="256" height="256" src="demo/assets/notification-scheduler-ios.png">
+	<img width="256" height="256" src="../demo/assets/notification-scheduler-ios.png">
 </p>
 
 ---
 
-# <img src="addon/icon.png" width="24"> Godot Notification Scheduler Plugin
+# <img src="../addon/icon.png" width="24"> Godot Notification Scheduler Plugin
 
 A unified GDScript interface for scheduling **local notifications** on **Android** and **iOS**.
 
@@ -18,7 +18,7 @@ A unified GDScript interface for scheduling **local notifications** on **Android
 
 ---
 
-## <img src="addon/icon.png" width="20"> Table of Contents
+## <img src="../addon/icon.png" width="20"> Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
 - [Signals](#signals)
@@ -31,9 +31,9 @@ A unified GDScript interface for scheduling **local notifications** on **Android
 
 ---
 
-<a name="installation">
+<a name="installation"></a>
 
-## <img src="addon/icon.png" width="20"> Installation
+## <img src="../addon/icon.png" width="20"> Installation
 
 **Uninstall previous versions** before installing.
 If using both Android & iOS, ensure **same addon interface version**.
@@ -52,9 +52,9 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="usage">
+<a name="usage"></a>
 
-## <img src="addon/icon.png" width="20"> Usage
+## <img src="../addon/icon.png" width="20"> Usage
 
 1. Add a **NotificationScheduler** node to your scene.
 2. Connect [signals](#signals):
@@ -101,9 +101,9 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="signals">
+<a name="signals"></a>
 
-## <img src="addon/icon.png" width="20"> Signals
+## <img src="../addon/icon.png" width="20"> Signals
 
 - `initialization_completed()`: Emitted when the plugin is initialized.
 - `notification_opened(notification_id: int)`: Emitted when a user taps notification.
@@ -113,9 +113,9 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="error-codes">
+<a name="error-codes"></a>
 
-## <img src="addon/icon.png" width="20"> Error Codes
+## <img src="../addon/icon.png" width="20"> Error Codes
 
 | Constant              | Value | Description                             |
 |-----------------------|-------|-----------------------------------------|
@@ -127,9 +127,9 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="platform-specific-notes">
+<a name="platform-specific-notes"></a>
 
-## <img src="addon/icon.png" width="20"> Platform-Specific Notes
+## <img src="../addon/icon.png" width="20"> Platform-Specific Notes
 
 ### Android
 - **Default icon:** `ic_default_notification` in `res://assets/NotificationSchedulerPlugin`
@@ -152,32 +152,32 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="links">
+<a name="links"></a>
 
-# <img src="addon/icon.png" width="20"> Links
+# <img src="../addon/icon.png" width="20"> Links
 
 - [AssetLib Entry Android](https://godotengine.org/asset-library/asset/2547)
 - [AssetLib Entry iOS](https://godotengine.org/asset-library/asset/3186)
 
 ---
 
-<a name="all-plugins">
+<a name="all-plugins"></a>
 
-# <img src="addon/icon.png" width="24"> All Plugins
+# <img src="../addon/icon.png" width="24"> All Plugins
 
-| Plugin | Android | iOS |
-| :--- | :---: | :---: |
-| [Notification Scheduler](https://github.com/godot-sdk-integrations/godot-notification-scheduler) | ✅ | ✅ |
-| [Admob](https://github.com/godot-sdk-integrations/godot-admob) | ✅ | ✅ |
-| [Deeplink](https://github.com/godot-sdk-integrations/godot-deeplink) | ✅ | ✅ |
-| [Share](https://github.com/godot-sdk-integrations/godot-share) | ✅ | ✅ |
-| [In-App Review](https://github.com/godot-sdk-integrations/godot-inapp-review) | ✅ | ✅ |
+| Plugin | Android | iOS | Free | Open Source | License |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| [Notification Scheduler](https://github.com/godot-sdk-integrations/godot-notification-scheduler) | ✅ | ✅ | ✅ | ✅ | MIT |
+| [Admob](https://github.com/godot-sdk-integrations/godot-admob) | ✅ | ✅ | ✅ | ✅ | MIT |
+| [Deeplink](https://github.com/godot-sdk-integrations/godot-deeplink) | ✅ | ✅ | ✅ | ✅ | MIT |
+| [Share](https://github.com/godot-sdk-integrations/godot-share) | ✅ | ✅ | ✅ | ✅ | MIT |
+| [In-App Review](https://github.com/godot-sdk-integrations/godot-inapp-review) | ✅ | ✅ | ✅ | ✅ | MIT |
 
 ---
 
-<a name="credits">
+<a name="credits"></a>
 
-# <img src="addon/icon.png" width="24"> Credits
+# <img src="../addon/icon.png" width="24"> Credits
 
 - Developed by [Cengiz](https://github.com/cengiz-pz)
 - iOS part based on [Godot iOS Plugin Template](https://github.com/cengiz-pz/godot-ios-plugin-template)
@@ -185,40 +185,8 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
-<a name="contributing">
+<a name="contributing"></a>
 
-# <img src="addon/icon.png" width="24"> Contributing
+# <img src="../addon/icon.png" width="24"> Contributing
 
-This section provides information on how to build the plugin for contributors.
-
----
-
-## <img src="addon/icon.png" width="20"> iOS
-
-### Prerequisites
-
-- [Install SCons](https://scons.org/doc/production/HTML/scons-user/ch01s02.html)
-- [Install CocoaPods](https://guides.cocoapods.org/using/getting-started.html)
-
----
-
-### Build
-
-- Run `./script/build.sh -A <godot version>` initially to run a full build
-- Run `./script/build.sh -cgA <godot version>` to clean, redownload Godot, and rebuild
-- Run `./script/build.sh -ca` to clean and build without redownloading Godot
-- Run `./script/build.sh -h` for more information on the build script
-
----
-
-## <img src="addon/icon.png" width="20"> Android
-
-### Build
-
-**Options:**
-1. Use [Android Studio](https://developer.android.com/studio) to build via **Build->Assemble Project** menu
-	- Switch **Active Build Variant** to **release** and repeat
-	- Run **packageDistribution** task to create release archive
-2. Use project-root-level **build.sh** script
-	- `./script/build.sh -ca` - clean existing build, do a debug build for Android
-	- `./script/build.sh -carz` - clean existing build, do a release build for Android, and create archive
+See [our guide](CONTRIBUTING.md) if you would like to contribute to this project.
