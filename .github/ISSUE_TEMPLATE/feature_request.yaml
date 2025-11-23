@@ -1,7 +1,7 @@
 name: 🐠 Feature Request
 description: Suggest an idea for this project
-title: "[FEATURE REQ] <title>"
-labels: ["Enhancement", "Question"]
+title: "🐠 "
+type: feature
 body:
 - type: checkboxes
   attributes:
@@ -39,21 +39,22 @@ body:
       - 4.3.stable
       - 4.4.1.stable
       - 4.5.stable
-      - 4.6.dev
+      - 4.5.1.stable
       - 4.x
       - Other
-    default: 2
+    default: 3
   validations:
     required: true
 - type: dropdown
   id: godot_os
   attributes:
     label: OS Godot Is Running On
-    description: What operating system is Godot running on?
+    description: What operating system is the Godot Editor running on?
     options:
       - Windows 11
       - Windows (other)
       - macOS 15
+      - macOS 26
       - macOS (other)
       - Android 14
       - Android 15
@@ -69,8 +70,8 @@ body:
     label: Plugin Version
     description: What version of the plugin are you running?
     options:
-      - "4.0"
       - "5.0"
+      - "5.1"
       - Other
     default: 1
   validations:
@@ -79,7 +80,7 @@ body:
   id: plugin_os
   attributes:
     label: OS Plugin Is Running On
-    description: What operating system the plugin (and your app) is running on?
+    description: What operating system is the plugin (and your app) running on?
     options:
       - Android 13
       - Android 14
@@ -88,9 +89,9 @@ body:
       - Android (other)
       - iOS 18.x
       - iOS 18.5
-      - iOS 18.6
+      - iOS 26.x
       - iOS (other)
-    default: 3
+    default: 2
   validations:
     required: true
 - type: textarea
