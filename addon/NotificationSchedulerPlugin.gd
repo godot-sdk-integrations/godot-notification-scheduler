@@ -158,10 +158,10 @@ class IosExportPlugin extends EditorExportPlugin:
 
 	func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int) -> void:
 		for __framework in IOS_FRAMEWORKS:
-			add_ios_framework(__framework)
+			add_apple_embedded_platform_framework(__framework)
 
 		for __framework in IOS_EMBEDDED_FRAMEWORKS:
-			add_ios_embedded_framework(__framework)
+			add_apple_embedded_platform_embedded_framework(__framework)
 
 		for __flag in IOS_LINKER_FLAGS:
-			add_ios_linker_flags(__flag)
+			add_apple_embedded_platform_linker_flags(__flag)
