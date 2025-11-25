@@ -27,11 +27,13 @@ extern NSString * const PENDING_ACTION_KEY;
 @property (nonatomic) NSInteger interval;
 @property (nonatomic) NSInteger badgeCount;
 @property (nonatomic) BOOL restartApp;
-@property (nonatomic, strong) UNMutableNotificationContent* notificationContent; // Renamed to avoid conflict
+@property (nonatomic, strong) NSDictionary* customData;
+@property (nonatomic, strong) UNMutableNotificationContent* notificationContent;
 
 - (instancetype) initWithGodotDictionary:(Dictionary) notificationData;
 - (instancetype) initWithNsDictionary:(NSDictionary *) notificationData;
 - (NSDictionary *) toNsDictionary;
+- (Dictionary) toGodotDictionary;
 - (NSString *) getKey;
 - (NSString *)getIdWithSequence:(int) sequence;
 - (BOOL) isSequenceOf:(NSString *) identifier;

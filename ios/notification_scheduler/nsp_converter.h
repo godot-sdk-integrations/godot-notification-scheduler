@@ -13,13 +13,14 @@
 @interface NSPConverter : NSObject
 
 // From Godot
-+ (NSString*) toNsString:(String) godotString;
-+ (NSNumber*) toNsNumber:(Variant) v;
++ (NSString*) toNsString:(const String) godotString;
++ (NSNumber*) toNsNumber:(const Variant) v;
++ (NSDictionary*) toNsDictionary:(const Dictionary&) godotDictionary;
 
 
 // To Godot
-+ (String)nsStringToGodotString:(const NSString*)nsString;
-+ (Dictionary) nsDictionaryToGodotDictionary:(NSDictionary*) nsDictionary;
++ (String) toGodotString:(const NSString*) nsString;
++ (Dictionary) toGodotDictionary:(NSDictionary*) nsDictionary;
 + (Dictionary) nsUrlToGodotDictionary:(NSURL*) status;
 
 @end

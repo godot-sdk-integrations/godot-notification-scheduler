@@ -51,7 +51,6 @@ static NSPServiceInitializer initializer;
 	[self handleNotificationResponseWithId:notificationId actionIdentifier:actionIdentifier];
 }
 
-// Helper method to handle notification response with ID and action
 - (void)handleNotificationResponseWithId:(NSString *)notificationId actionIdentifier:(NSString *)actionIdentifier {
 	NSLog(@"NSPService: Handling notification response with ID: %@, action: %@", notificationId, actionIdentifier);
 	NotificationSchedulerPlugin *plugin = NotificationSchedulerPlugin::get_singleton();
@@ -59,10 +58,10 @@ static NSPServiceInitializer initializer;
 		NSLog(@"NSPService: Singleton available, emitting signal for notification ID: %@", notificationId);
 		// Defer signal emission to ensure Godot environment is ready
 		if ([actionIdentifier isEqualToString:UNNotificationDismissActionIdentifier]) {
-			plugin->emit_signal(NOTIFICATION_DISMISSED_SIGNAL, [notificationId intValue]);
+			plugin->emit_notification_event(NOTIFICATION_DISMISSED_SIGNAL, notificationId);
 			plugin->handle_completion(notificationId);
 		} else if ([actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
-			plugin->emit_signal(NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
+			plugin->emit_notification_event(NOTIFICATION_OPENED_SIGNAL, notificationId);
 			plugin->handle_completion(notificationId);
 		} else {
 			NSLog(@"NSPService: ERROR: Unexpected action identifier: %@", actionIdentifier);
@@ -85,14 +84,14 @@ static NSPServiceInitializer initializer;
 
 // Handle notification when app is in foreground
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
-			willPresentNotification:(UNNotification *)notification
-			withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+		willPresentNotification:(UNNotification *)notification
+		withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
 	NSString *notificationId = notification.request.identifier;
 	NSLog(@"NSPService: Received foreground notification with ID: %@", notificationId);
 	completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner);
 	NotificationSchedulerPlugin *plugin = NotificationSchedulerPlugin::get_singleton();
 	if (plugin) {
-		plugin->emit_signal(NOTIFICATION_OPENED_SIGNAL, [notificationId intValue]);
+		plugin->emit_notification_event(NOTIFICATION_OPENED_SIGNAL, notificationId);
 		plugin->handle_completion(notificationId);
 	} else {
 		NSLog(@"NSPService: WARNING: NotificationSchedulerPlugin singleton not available for foreground notification. Queuing.");

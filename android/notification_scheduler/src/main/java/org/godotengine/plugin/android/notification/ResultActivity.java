@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.godotengine.plugin.android.notification.model.NotificationData;
 
 public class ResultActivity extends AppCompatActivity {
-	private static final String LOG_TAG = "godot::" + ResultActivity.class.getSimpleName();
+	private static final String LOG_TAG = NotificationSchedulerPlugin.LOG_TAG + "::" + ResultActivity.class.getSimpleName();
 
 	private static final String GODOT_APP_MAIN_ACTIVITY_CLASSPATH = "com.godot.game.GodotApp";
 	private static Class<?> godotAppMainActivityClass = null;
@@ -48,13 +48,10 @@ public class ResultActivity extends AppCompatActivity {
 		Log.i(LOG_TAG, "Starting activity with intent: " + godotIntent);
 		startActivity(godotIntent);
 
-		Bundle bundle = getIntent().getExtras();
-		if (NotificationSchedulerPlugin.instance != null && bundle != null && bundle.containsKey(NotificationData.DATA_KEY_ID)) {
-			// TODO: Handle in Godot app (check data on app resume/restart)
-			NotificationSchedulerPlugin.instance.handleNotificationOpened(bundle.getInt(NotificationData.DATA_KEY_ID));
+		if (notificationData.isValid()) {
+			NotificationSchedulerPlugin.handleNotificationOpened(notificationData);
 		} else {
-			Log.w(LOG_TAG, "Ignoring notification. Reason: " + (NotificationSchedulerPlugin.instance == null ? "instance null" : bundle == null ? "bundle null" : "bundle empty"));
+			Log.w(LOG_TAG, "Ignoring invalid notification.");
 		}
 	}
-
 }

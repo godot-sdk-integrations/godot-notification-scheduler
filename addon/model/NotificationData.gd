@@ -13,9 +13,11 @@ const DATA_KEY_DELAY = "delay"
 const DATA_KEY_DEEPLINK = "deeplink"
 const DATA_KEY_INTERVAL = "interval"
 const DATA_KEY_BADGE_COUNT= "badge_count"
+const DATA_KEY_CUSTOM_DATA= "custom_data"
+
 const OPTION_KEY_RESTART_APP = "restart_app"
 
-var DEFAULT_DATA: Dictionary = {
+const DEFAULT_DATA: Dictionary = {
 	DATA_KEY_ID: NotificationScheduler.DEFAULT_NOTIFICATION_ID,
 	DATA_KEY_SMALL_ICON_NAME: NotificationScheduler.DEFAULT_SMALL_ICON_NAME
 }
@@ -72,6 +74,11 @@ func set_badge_count(a_count: int) -> NotificationData:
 	return self
 
 
+func set_custom_data(a_custom_data: CustomData) -> NotificationData:
+	_data[DATA_KEY_CUSTOM_DATA] = a_custom_data.get_raw_data()
+	return self
+
+
 func set_restart_app_option() -> NotificationData:
 	_data[OPTION_KEY_RESTART_APP] = true
 	return self
@@ -111,6 +118,10 @@ func get_interval() -> int:
 
 func get_badge_count() -> int:
 	return _data[DATA_KEY_BADGE_COUNT] if _data.has(DATA_KEY_BADGE_COUNT) else 0
+
+
+func get_custom_data() -> CustomData:
+	return CustomData.new(_data[DATA_KEY_CUSTOM_DATA]) if _data.has(DATA_KEY_CUSTOM_DATA) else null
 
 
 func get_restart_app_option() -> bool:

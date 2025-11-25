@@ -6,8 +6,8 @@
 class_name NotificationScheduler extends Node
 
 signal initialization_completed()
-signal notification_opened(notification_id: int)
-signal notification_dismissed(notification_id: int)
+signal notification_opened(notification_data: NotificationData)
+signal notification_dismissed(notification_data: NotificationData)
 signal permission_granted(permission_name: String)
 signal permission_denied(permission_name: String)
 
@@ -139,12 +139,12 @@ func _on_initialization_completed() -> void:
 	initialization_completed.emit()
 
 
-func _on_notification_opened(a_notification_id: int) -> void:
-	notification_opened.emit(a_notification_id)
+func _on_notification_opened(a_notification_data: Dictionary) -> void:
+	notification_opened.emit(NotificationData.new(a_notification_data))
 
 
-func _on_notification_dismissed(a_notification_id: int) -> void:
-	notification_dismissed.emit(a_notification_id)
+func _on_notification_dismissed(a_notification_data: Dictionary) -> void:
+	notification_dismissed.emit(NotificationData.new(a_notification_data))
 
 
 func _on_permission_granted(a_permission_name: String) -> void:
