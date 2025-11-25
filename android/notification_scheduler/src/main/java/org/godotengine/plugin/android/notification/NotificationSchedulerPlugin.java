@@ -43,7 +43,7 @@ import org.godotengine.plugin.android.notification.model.NotificationData;
 import java.util.Set;
 
 public class NotificationSchedulerPlugin extends GodotPlugin {
-	private static final String LOG_TAG = "godot::" + NotificationSchedulerPlugin.class.getSimpleName();
+	public static final String LOG_TAG = "godot::" + NotificationSchedulerPlugin.class.getSimpleName();
 
 	static NotificationSchedulerPlugin instance;
 
@@ -51,12 +51,10 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 
 	private static final SignalInfo PERMISSION_GRANTED_SIGNAL = new SignalInfo("permission_granted", String.class);
 	private static final SignalInfo PERMISSION_DENIED_SIGNAL = new SignalInfo("permission_denied", String.class);
-	private static final SignalInfo NOTIFICATION_OPENED_SIGNAL = new SignalInfo("notification_opened", Integer.class);
-	private static final SignalInfo NOTIFICATION_DISMISSED_SIGNAL = new SignalInfo("notification_dismissed", Integer.class);
+	private static final SignalInfo NOTIFICATION_OPENED_SIGNAL = new SignalInfo("notification_opened", Dictionary.class);
+	private static final SignalInfo NOTIFICATION_DISMISSED_SIGNAL = new SignalInfo("notification_dismissed", Dictionary.class);
 
 	private static final int POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 11803;
-
-	private static final int NOTIFICATION_NOT_FOUND = -1;
 
 	private Activity activity;
 	private boolean isInitialized;
@@ -92,7 +90,7 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		}
 
 		ChannelData channelData = new ChannelData(data);
-		if (channelData.validate()) {
+		if (channelData.isValid()) {
 			NotificationManager manager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
 
 			// Check if channel already exists
@@ -132,35 +130,16 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 
 		NotificationData notificationData = new NotificationData(data);
 		Log.d(LOG_TAG, "schedule():: notification id: " + notificationData.getId());
+
 		if (notificationData.isValid()) {
-			@SuppressWarnings("ConstantConditions") int notificationId = notificationData.getId();
-
-			Intent intent = new Intent(activity.getApplicationContext(), NotificationReceiver.class);
-			intent.putExtra(NotificationData.DATA_KEY_ID, notificationId);
-			intent.putExtra(NotificationData.DATA_KEY_CHANNEL_ID, notificationData.getChannelId());
-			intent.putExtra(NotificationData.DATA_KEY_TITLE, notificationData.getTitle());
-			intent.putExtra(NotificationData.DATA_KEY_CONTENT, notificationData.getContent());
-			intent.putExtra(NotificationData.DATA_KEY_SMALL_ICON_NAME, notificationData.getSmallIconName());
-
-			if (notificationData.hasDeeplink()) {
-				intent.putExtra(NotificationData.DATA_KEY_DEEPLINK, notificationData.getDeeplink());
-			}
-
-			if (notificationData.hasRestartAppOption()) {
-				intent.putExtra(NotificationData.OPTION_KEY_RESTART_APP, true);
-			}
-
-			if (notificationData.getBadgeCount() > 0) {
-				intent.putExtra(NotificationData.DATA_KEY_BADGE_COUNT, notificationData.getBadgeCount());
-			}
-
 			if (notificationData.hasInterval()) {
-				scheduleRepeatingNotification(activity, notificationId, intent, notificationData.getDelay(), notificationData.getInterval());
+				scheduleRepeatingNotification(activity, notificationData);
 			} else {
-				scheduleNotification(activity, notificationId, intent, notificationData.getDelay());
+				scheduleNotification(activity, notificationData);
 			}
 		} else {
 			Log.e(LOG_TAG, "schedule(): invalid notification data object");
+			return Error.ERR_INVALID_DATA.toNativeValue();
 		}
 
 		return Error.OK.toNativeValue();
@@ -321,20 +300,19 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	@Override
 	public void onGodotSetupCompleted() {
 		super.onGodotSetupCompleted();
-		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-			Activity activity = getActivity();
-			if (activity != null) {
-				if (NotificationManagerCompat.from(activity.getApplicationContext()).areNotificationsEnabled()) {
+		if (this.activity != null) {
+			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+				if (NotificationManagerCompat.from(this.activity.getApplicationContext()).areNotificationsEnabled()) {
 					Log.i(LOG_TAG, "onGodotSetupCompleted():: POST_NOTIFICATIONS permission has already been granted");
 				}
-			} else {
-				Log.e(LOG_TAG, "onGodotSetupCompleted():: can't check permission status due to null activity");
 			}
-		}
 
-		int notificationId = checkIntent(this.activity.getIntent());
-		if (notificationId != NOTIFICATION_NOT_FOUND) {
-			handleNotificationOpened(notificationId);
+			NotificationData notificationData = new NotificationData(this.activity.getIntent());
+			if (notificationData.isValid()) {
+				handleNotificationOpened(notificationData);
+			}
+		} else {
+			Log.e(LOG_TAG, "onGodotSetupCompleted():: activity is null!");
 		}
 	}
 
@@ -364,37 +342,20 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		}
 	}
 
-	static int checkIntent(Intent intent) {
-		int notificationId = NOTIFICATION_NOT_FOUND;
-
-		if (intent != null) {
-			Bundle bundle = intent.getExtras();
-			if (bundle != null) {
-				if (bundle.containsKey(NotificationData.DATA_KEY_ID)) {
-					notificationId = bundle.getInt(NotificationData.DATA_KEY_ID, NOTIFICATION_NOT_FOUND);
-					Log.d(LOG_TAG, "checkIntent() received notification id " + notificationId);
-				}
-				else {
-					Log.d(LOG_TAG, "checkIntent() bundle does not contain notification id");
-				}
-			}
-			else {
-				Log.d(LOG_TAG, "checkIntent() bundle is null for intent " + intent);
-			}
+	static void handleNotificationOpened(NotificationData notificationData) {
+		if (instance != null) {
+			instance.emitSignal(instance.getGodot(), instance.getPluginName(), NOTIFICATION_OPENED_SIGNAL, notificationData.getRawData());
+		} else {
+			Log.e(LOG_TAG, String.format("%s():: Plugin instance not found!.", "handleNotificationOpened"));
 		}
-		else {
-			Log.d(LOG_TAG, "checkIntent() intent is null.");
-		}
-
-		return notificationId;
 	}
 
-	void handleNotificationOpened(int notificationId) {
-		emitSignal(getGodot(), getPluginName(), NOTIFICATION_OPENED_SIGNAL, notificationId);
-	}
-
-	void handleNotificationDismissed(int notificationId) {
-		emitSignal(getGodot(), getPluginName(), NOTIFICATION_DISMISSED_SIGNAL, notificationId);
+	static void handleNotificationDismissed(NotificationData notificationData) {
+		if (instance != null) {
+			instance.emitSignal(instance.getGodot(), instance.getPluginName(), NOTIFICATION_DISMISSED_SIGNAL, notificationData.getRawData());
+		} else {
+			Log.e(LOG_TAG, String.format("%s():: Plugin instance not found!.", "handleNotificationDismissed"));
+		}
 	}
 
 	private long calculateTimeAfterDelay(int delaySeconds) {
@@ -403,18 +364,29 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		return calendar.getTimeInMillis();
 	}
 
-	private void scheduleNotification(Activity activity, int notificationId, Intent intent, int delaySeconds) {
+	private void scheduleNotification(Activity activity, NotificationData notificationData) {
+		@SuppressWarnings("ConstantConditions") int notificationId = notificationData.getId();
+
+		Intent intent = new Intent(activity.getApplicationContext(), NotificationReceiver.class);
+		notificationData.populateIntent(intent);
+
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-		long timeAfterDelay = calculateTimeAfterDelay(delaySeconds);
+		long timeAfterDelay = calculateTimeAfterDelay(notificationData.getDelay());
 		alarmManager.set(AlarmManager.RTC_WAKEUP, timeAfterDelay,
 				PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
 						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
 		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d.", notificationId, timeAfterDelay));
 	}
 
-	private void scheduleRepeatingNotification(Activity activity, int notificationId, Intent intent, int delaySeconds, int intervalSeconds) {
+	private void scheduleRepeatingNotification(Activity activity, NotificationData notificationData) {
+		@SuppressWarnings("ConstantConditions") int notificationId = notificationData.getId();
+
+		Intent intent = new Intent(activity.getApplicationContext(), NotificationReceiver.class);
+		notificationData.populateIntent(intent);
+
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-		long timeAfterDelay = calculateTimeAfterDelay(delaySeconds);
+		long timeAfterDelay = calculateTimeAfterDelay(notificationData.getDelay());
+		int intervalSeconds = notificationData.getInterval();
 		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, timeAfterDelay, intervalSeconds*1000L,
 				PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
 						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));

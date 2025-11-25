@@ -46,7 +46,7 @@ public class ChannelData {
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.N)
-	public boolean validate() {
+	public boolean isValid() {
 		if (data.containsKey(DATA_KEY_IMPORTANCE) == false) {
 			data.put(DATA_KEY_IMPORTANCE, NotificationManager.IMPORTANCE_DEFAULT);
 		}

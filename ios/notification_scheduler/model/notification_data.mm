@@ -21,18 +21,21 @@ static NSString * const NOTIFICATION_INTERVAL_KEY = @"interval";
 static NSString * const NOTIFICATION_BADGE_COUNT_KEY = @"badge_count";
 static NSString * const NOTIFICATION_SMALL_ICON_NAME_KEY = @"small_icon_name";
 static NSString * const NOTIFICATION_DEEPLINK_KEY = @"deeplink";
+static NSString * const NOTIFICATION_CUSTOM_DATA_KEY = @"custom_data";
+
 static NSString * const NOTIFICATION_RESTART_APP_KEY = @"restart_app";
 
-const String NOTIFICATION_ID_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_ID_KEY];
-const String NOTIFICATION_CHANNEL_ID_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_CHANNEL_ID_KEY];
-const String NOTIFICATION_TITLE_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_TITLE_KEY];
-const String NOTIFICATION_CONTENT_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_CONTENT_KEY];
-const String NOTIFICATION_DELAY_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_DELAY_KEY];
-const String NOTIFICATION_INTERVAL_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_INTERVAL_KEY];
-const String NOTIFICATION_BADGE_COUNT_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_BADGE_COUNT_KEY];
-const String NOTIFICATION_SMALL_ICON_NAME_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_SMALL_ICON_NAME_KEY];
-const String NOTIFICATION_DEEPLINK_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_DEEPLINK_KEY];
-const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter nsStringToGodotString:NOTIFICATION_RESTART_APP_KEY];
+static const String NOTIFICATION_ID_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_ID_KEY];
+static const String NOTIFICATION_CHANNEL_ID_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_CHANNEL_ID_KEY];
+static const String NOTIFICATION_TITLE_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_TITLE_KEY];
+static const String NOTIFICATION_CONTENT_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_CONTENT_KEY];
+static const String NOTIFICATION_DELAY_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_DELAY_KEY];
+static const String NOTIFICATION_INTERVAL_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_INTERVAL_KEY];
+static const String NOTIFICATION_BADGE_COUNT_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_BADGE_COUNT_KEY];
+static const String NOTIFICATION_SMALL_ICON_NAME_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_SMALL_ICON_NAME_KEY];
+static const String NOTIFICATION_DEEPLINK_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_DEEPLINK_KEY];
+static const String NOTIFICATION_CUSTOM_DATA_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_CUSTOM_DATA_KEY];
+static const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter toGodotString:NOTIFICATION_RESTART_APP_KEY];
 
 @implementation NotificationData
 
@@ -66,6 +69,9 @@ const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter nsStringToGodotSt
 		} else {
 			self.badgeCount = 0;
 		}
+		if (notificationData.has(NOTIFICATION_CUSTOM_DATA_PROPERTY)) {
+			self.customData = [NSPConverter toNsDictionary: notificationData[NOTIFICATION_CUSTOM_DATA_PROPERTY]];
+		}
 		if (notificationData.has(NOTIFICATION_RESTART_APP_PROPERTY)) {
 			self.restartApp = YES;
 		} else {
@@ -91,11 +97,55 @@ const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter nsStringToGodotSt
 		self.delay = [nsDict[NOTIFICATION_DELAY_KEY] integerValue];
 		self.interval = [nsDict[NOTIFICATION_INTERVAL_KEY] integerValue];
 		self.badgeCount = [nsDict[NOTIFICATION_BADGE_COUNT_KEY] integerValue];
+		self.deeplink = nsDict[NOTIFICATION_DEEPLINK_KEY];
+		self.customData = nsDict[NOTIFICATION_CUSTOM_DATA_KEY];
+		// Unsupported fields
+		self.smallIconName = nsDict[NOTIFICATION_SMALL_ICON_NAME_KEY];
+		self.restartApp = nsDict[NOTIFICATION_RESTART_APP_KEY];
 	}
 	return self;
 }
 
-- (NSDictionary *)toNsDictionary {
+- (Dictionary) toGodotDictionary {
+	Dictionary dict = Dictionary();
+	
+	dict[NOTIFICATION_ID_PROPERTY] = [self.notificationId intValue];
+	if (self.channelId) {
+		dict[NOTIFICATION_CHANNEL_ID_PROPERTY] = [NSPConverter toGodotString: self.channelId];
+	}
+	if (self.title) {
+		dict[NOTIFICATION_TITLE_PROPERTY] = [NSPConverter toGodotString: self.title];
+	}
+	if (self.content) {
+		dict[NOTIFICATION_CONTENT_PROPERTY] = [NSPConverter toGodotString: self.content];
+	}
+	if (self.delay != 0) {
+		dict[NOTIFICATION_DELAY_PROPERTY] = (int) self.delay;
+	}
+	if (self.interval != 0) {
+		dict[NOTIFICATION_INTERVAL_PROPERTY] = (int) self.interval;
+	}
+	if (self.badgeCount != 0) {
+		dict[NOTIFICATION_BADGE_COUNT_PROPERTY] = (int) self.badgeCount;
+	}
+	if (self.deeplink) {
+		dict[NOTIFICATION_DEEPLINK_PROPERTY] = [NSPConverter toGodotString: self.deeplink];
+	}
+	if (self.customData) {
+		dict[NOTIFICATION_CUSTOM_DATA_PROPERTY] = [NSPConverter toGodotDictionary: self.customData];
+	}
+	// Unsupported fields
+	if (self.smallIconName) {
+		dict[NOTIFICATION_SMALL_ICON_NAME_PROPERTY] = [NSPConverter toGodotString: self.smallIconName];
+	}
+	if (self.restartApp) {
+		dict[NOTIFICATION_RESTART_APP_PROPERTY] = YES;
+	}
+	
+	return dict;
+}
+
+- (NSDictionary *) toNsDictionary {
 	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 	
 	dict[NOTIFICATION_ID_KEY] = self.notificationId;
@@ -123,6 +173,9 @@ const String NOTIFICATION_RESTART_APP_PROPERTY = [NSPConverter nsStringToGodotSt
 	}
 	if (self.deeplink) {
 		dict[NOTIFICATION_DEEPLINK_KEY] = self.deeplink;
+	}
+	if (self.customData) {
+		dict[NOTIFICATION_CUSTOM_DATA_KEY] = self.customData;
 	}
 	if (self.restartApp) {
 		dict[NOTIFICATION_RESTART_APP_KEY] = @(YES);

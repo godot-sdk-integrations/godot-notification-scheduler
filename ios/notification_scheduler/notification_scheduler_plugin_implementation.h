@@ -50,6 +50,7 @@ public:
 
 	// Internal methods
 	void handle_completion(NSString* notificationId);
+	void emit_notification_event(const String &p_signal, NSString *p_notification_id);
 
 	NotificationSchedulerPlugin();
 	~NotificationSchedulerPlugin();

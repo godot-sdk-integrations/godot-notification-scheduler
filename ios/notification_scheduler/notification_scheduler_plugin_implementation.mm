@@ -32,8 +32,8 @@ void NotificationSchedulerPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open_app_info_settings"), &NotificationSchedulerPlugin::open_app_info_settings);
 
 	ADD_SIGNAL(MethodInfo(INITIALIZATION_COMPLETED));
-	ADD_SIGNAL(MethodInfo(NOTIFICATION_OPENED_SIGNAL, PropertyInfo(Variant::INT, "notification_id")));
-	ADD_SIGNAL(MethodInfo(NOTIFICATION_DISMISSED_SIGNAL, PropertyInfo(Variant::INT, "notification_id")));
+	ADD_SIGNAL(MethodInfo(NOTIFICATION_OPENED_SIGNAL, PropertyInfo(Variant::DICTIONARY, "notification_data")));
+	ADD_SIGNAL(MethodInfo(NOTIFICATION_DISMISSED_SIGNAL, PropertyInfo(Variant::DICTIONARY, "notification_data")));
 	ADD_SIGNAL(MethodInfo(PERMISSION_GRANTED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
 	ADD_SIGNAL(MethodInfo(PERMISSION_DENIED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
 }
@@ -392,6 +392,24 @@ Error NotificationSchedulerPlugin::open_app_info_settings() {
 	return OK;
 }
 
+void NotificationSchedulerPlugin::emit_notification_event(const String &p_signal, NSString *p_notification_id) {
+	if (!is_initialized) {
+		NSLog(@"emit_notification_event: Plugin not initialized, skipping emit for ID %@", p_notification_id);
+		return;
+	}
+	NSString *base_id = [NotificationData stripSequence: p_notification_id];
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSString *key = [NotificationData toKey: base_id];
+	NSDictionary *notificationDict = [defaults dictionaryForKey: key];
+	if (notificationDict == nil) {
+		NSLog(@"emit_notification_event: WARNING: No cached data for base ID '%@' (key: '%@')", base_id, key);
+		return;
+	}
+	NotificationData *notificationData = [[NotificationData alloc] initWithNsDictionary:notificationDict];
+	emit_signal(p_signal, [notificationData toGodotDictionary]);
+	NSLog(@"emit_notification_event: Emitted signal '%s' with data for base ID '%@'", p_signal.utf8().get_data(), base_id);
+}
+
 void NotificationSchedulerPlugin::handle_completion(NSString* notificationId) {
 	if (!is_initialized) {
 		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
@@ -409,7 +427,8 @@ void NotificationSchedulerPlugin::handle_completion(NSString* notificationId) {
 
 	NotificationData* notificationData = [[NotificationData alloc] initWithNsDictionary:notificationDict];
 
-	
+	lastReceivedNotificationId = [notificationData.notificationId intValue];
+
 	if (notificationData.interval >= 60) {
 		UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
 
@@ -448,8 +467,6 @@ void NotificationSchedulerPlugin::handle_completion(NSString* notificationId) {
 		_remove_notification_from_cache(notificationData);
 		_remove_notification_from_UNC(notificationData);
 	}
-
-	lastReceivedNotificationId = [notificationId intValue];
 }
 
 // Remove persisted data from NSUserDefaults
@@ -502,15 +519,13 @@ void NotificationSchedulerPlugin::_process_queued_notifications() {
 	NSString *actionIdentifier = [defaults objectForKey:PENDING_ACTION_KEY];
 	
 	if (notificationId && actionIdentifier) {
-		NSArray *parts = [notificationId componentsSeparatedByString:NOTIFICATION_SEQUENCE_DELIMITER];
-		NSString *baseId = parts.count >= 2 ? parts[0] : notificationId;
 		NSLog(@"NotificationSchedulerPlugin: Processing queued notification ID: %@ with action: %@", notificationId, actionIdentifier);
 		if ([actionIdentifier isEqualToString:UNNotificationDismissActionIdentifier]) {
-			this->emit_signal(NOTIFICATION_DISMISSED_SIGNAL, [baseId intValue]);
-			this->handle_completion(baseId);
+			this->emit_notification_event(NOTIFICATION_DISMISSED_SIGNAL, notificationId);
+			this->handle_completion(notificationId);
 		} else if ([actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
-			this->emit_signal(NOTIFICATION_OPENED_SIGNAL, [baseId intValue]);
-			this->handle_completion(baseId);
+			this->emit_notification_event(NOTIFICATION_OPENED_SIGNAL, notificationId);
+			this->handle_completion(notificationId);
 		} else {
 			NSLog(@"NotificationSchedulerPlugin: WARNING: Unknown action identifier: %@", actionIdentifier);
 		}

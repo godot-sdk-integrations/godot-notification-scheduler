@@ -105,8 +105,11 @@ func _on_send_button_pressed() -> void:
 	if _badge_count_checkbox.button_pressed:
 		__notification_data.set_badge_count(roundi(_badge_count_slider.value))
 
-	_print_to_screen("Scheduling notification %d with an interval of %d seconds and a delay of %d seconds"
-			% [_notification_id, int(_interval_slider.value), int(_delay_slider.value)])
+	_print_to_screen("Scheduling notification %d with%s a delay of %d seconds (badge count: %d)"
+			% [_notification_id,
+			(" an interval of %d seconds and" % int(_interval_slider.value)) if _interval_checkbox.button_pressed else "",
+			int(_delay_slider.value),
+			roundi(_badge_count_slider.value)])
 
 	notification_scheduler.schedule(__notification_data)
 
@@ -152,13 +155,13 @@ func _on_notification_scheduler_permission_denied(permission_name: String) -> vo
 	_print_to_screen("%s permission denied" % permission_name)
 
 
-func _on_notification_scheduler_notification_opened(notification_id: int) -> void:
-	_print_to_screen("Notification %d opened" % notification_id)
+func _on_notification_scheduler_notification_opened(a_notification: NotificationData) -> void:
+	_print_to_screen("Notification %d opened" % a_notification.get_id())
 	notification_scheduler.set_badge_count(0)
 
 
-func _on_notification_scheduler_notification_dismissed(notification_id: int) -> void:
-	_print_to_screen("Notification %d dismissed" % notification_id)
+func _on_notification_scheduler_notification_dismissed(a_notification: NotificationData) -> void:
+	_print_to_screen("Notification %d dismissed" % a_notification.get_id())
 	notification_scheduler.set_badge_count(0)
 
 

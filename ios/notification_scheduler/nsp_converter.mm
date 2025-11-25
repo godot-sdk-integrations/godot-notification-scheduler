@@ -9,11 +9,11 @@
 
 // FROM GODOT
 
-+ (NSString*) toNsString:(String) godotString {
++ (NSString*) toNsString:(const String) godotString {
 	return [NSString stringWithUTF8String:godotString.utf8().get_data()];
 }
 
-+ (NSNumber*) toNsNumber:(Variant) v {
++ (NSNumber*) toNsNumber:(const Variant) v {
 	if (v.get_type() == Variant::FLOAT) {
 		return [NSNumber numberWithDouble:(double) v];
 	} else if (v.get_type() == Variant::INT) {
@@ -26,16 +26,77 @@
 }
 
 
++ (NSDictionary*) toNsDictionary:(const Dictionary&)godotDictionary {
+	NSMutableDictionary* result = [NSMutableDictionary dictionary];
+
+	Array keys = godotDictionary.keys();
+	for (int i = 0; i < keys.size(); i++) {
+		Variant keyVariant = keys[i];
+		if (keyVariant.get_type() != Variant::STRING) {
+			NSLog(@"toNsDictionary: Skipping non-string keys (NSDictionary requires NSString keys)");
+			continue;
+		}
+
+		String keyString = keyVariant;
+		NSString* nsKey = [NSString stringWithUTF8String:keyString.utf8().get_data()];
+
+		Variant value = godotDictionary[keyVariant];
+
+		switch (value.get_type()) {
+
+			case Variant::STRING: {
+				String gdString = value;
+				NSString* nsValue =
+					[NSString stringWithUTF8String:gdString.utf8().get_data()];
+				[result setObject:(nsValue ?: @"") forKey:nsKey];
+				break;
+			}
+
+			case Variant::INT: {
+				NSNumber* nsValue = [NSNumber numberWithLongLong:(long long)value];
+				[result setObject:nsValue forKey:nsKey];
+				break;
+			}
+
+			case Variant::FLOAT: {
+				NSNumber* nsValue = [NSNumber numberWithDouble:(double)value];
+				[result setObject:nsValue forKey:nsKey];
+				break;
+			}
+
+			case Variant::BOOL: {
+				NSNumber* nsValue = [NSNumber numberWithBool:(bool)value];
+				[result setObject:nsValue forKey:nsKey];
+				break;
+			}
+
+			case Variant::DICTIONARY: {
+				Dictionary nested = value;
+				NSDictionary* nestedDict = [NSPConverter toNsDictionary:nested];
+				[result setObject:nestedDict forKey:nsKey];
+				break;
+			}
+
+			default:
+				NSLog(@"toNsDictionary: Skipping unsupported value type (%d)", value.get_type());
+				break;
+		}
+	}
+
+	return result;
+}
+
+
 // TO GODOT
 
-+ (String)nsStringToGodotString:(const NSString*) nsString {
++ (String) toGodotString:(const NSString*) nsString {
 	if (!nsString) {
 		return String();
 	}
 	return String([nsString UTF8String]);
 }
 
-+ (Dictionary) nsDictionaryToGodotDictionary:(NSDictionary*) nsDictionary {
++ (Dictionary) toGodotDictionary:(NSDictionary*) nsDictionary {
 	Dictionary dictionary = Dictionary();
 
 	for (NSObject* keyObject in [nsDictionary allKeys]) {
@@ -68,7 +129,7 @@
 				}
 				else if ([valueObject isKindOfClass:[NSDictionary class]]) {
 					NSDictionary* value = (NSDictionary*) valueObject;
-					dictionary[[key UTF8String]] = [NSPConverter nsDictionaryToGodotDictionary:value];
+					dictionary[[key UTF8String]] = [NSPConverter toGodotDictionary:value];
 				}
 			}
 		}

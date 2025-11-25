@@ -13,7 +13,7 @@ import org.godotengine.plugin.android.notification.model.NotificationData;
 
 
 public class CancelNotificationReceiver extends BroadcastReceiver {
-	private static final String LOG_TAG = "godot::" + CancelNotificationReceiver.class.getSimpleName();
+	private static final String LOG_TAG = NotificationSchedulerPlugin.LOG_TAG + "::" + CancelNotificationReceiver.class.getSimpleName();
 
 	private static final String ICON_RESOURCE_TYPE = "drawable";
 
@@ -26,12 +26,8 @@ public class CancelNotificationReceiver extends BroadcastReceiver {
 			Log.e(LOG_TAG, String.format("%s():: Received intent is null. Unable to generate notification.",
 					"onReceive"));
 		} else if (intent.hasExtra(NotificationData.DATA_KEY_ID)) {
-			int notificationId = intent.getIntExtra(NotificationData.DATA_KEY_ID, 0);
-			if (NotificationSchedulerPlugin.instance == null) {
-				Log.e(LOG_TAG, String.format("%s():: Plugin instance not found!.", "onReceive"));
-			} else {
-				NotificationSchedulerPlugin.instance.handleNotificationDismissed(notificationId);
-			}
+			NotificationData notificationData = new NotificationData(intent);
+			NotificationSchedulerPlugin.handleNotificationDismissed(notificationData);
 		} else {
 			Log.e(LOG_TAG, String.format("%s():: %s extra not found in intent. Unable to generate notification.",
 					"onReceive", NotificationData.DATA_KEY_ID));
