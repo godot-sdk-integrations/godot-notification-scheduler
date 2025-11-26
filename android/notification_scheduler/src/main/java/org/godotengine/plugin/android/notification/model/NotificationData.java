@@ -11,6 +11,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +36,7 @@ public class NotificationData {
 	public static final String DATA_KEY_TITLE = "title";
 	public static final String DATA_KEY_CONTENT = "content";
 	public static final String DATA_KEY_SMALL_ICON_NAME = "small_icon_name";
+	public static final String DATA_KEY_LARGE_ICON_NAME = "large_icon_name";
 	public static final String DATA_KEY_DELAY = "delay";
 	public static final String DATA_KEY_DEEPLINK = "deeplink";
 	public static final String DATA_KEY_INTERVAL = "interval";
@@ -41,6 +46,9 @@ public class NotificationData {
 	public static final String OPTION_KEY_RESTART_APP = "restart_app";
 
 	private static final String ICON_RESOURCE_TYPE = "drawable";
+
+	private static final int DEFAULT_LARGE_ICON_WIDTH = 512;
+	private static final int DEFAULT_LARGE_ICON_HEIGHT = 512;
 
 	private Dictionary data;
 
@@ -64,6 +72,9 @@ public class NotificationData {
 		}
 		if (intent.hasExtra(DATA_KEY_SMALL_ICON_NAME)) {
 			data.put(DATA_KEY_SMALL_ICON_NAME, intent.getStringExtra(DATA_KEY_SMALL_ICON_NAME));
+		}
+		if (intent.hasExtra(DATA_KEY_LARGE_ICON_NAME)) {
+			data.put(DATA_KEY_LARGE_ICON_NAME, intent.getStringExtra(DATA_KEY_LARGE_ICON_NAME));
 		}
 		if (intent.hasExtra(DATA_KEY_DELAY)) {
 			data.put(DATA_KEY_DELAY, intent.getIntExtra(DATA_KEY_DELAY, -1));
@@ -116,6 +127,14 @@ public class NotificationData {
 
 	public String getSmallIconName() {
 		return (String) data.get(DATA_KEY_SMALL_ICON_NAME);
+	}
+
+	public boolean hasLargeIconName() {
+		return data.containsKey(DATA_KEY_LARGE_ICON_NAME);
+	}
+
+	public String getLargeIconName() {
+		return (String) data.get(DATA_KEY_LARGE_ICON_NAME);
 	}
 
 	/**
@@ -219,6 +238,10 @@ public class NotificationData {
 		intent.putExtra(DATA_KEY_DELAY, this.getDelay());
 		intent.putExtra(DATA_KEY_SMALL_ICON_NAME, this.getSmallIconName());
 
+		if (this.hasLargeIconName()) {
+			intent.putExtra(DATA_KEY_LARGE_ICON_NAME, this.getLargeIconName());
+		}
+
 		if (this.hasInterval()) {
 			intent.putExtra(DATA_KEY_INTERVAL, this.getInterval());
 		}
@@ -278,12 +301,6 @@ public class NotificationData {
 		Resources resources = context.getResources();
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, this.getChannelId())
 				.setSmallIcon(resources.getIdentifier(this.getSmallIconName(), ICON_RESOURCE_TYPE, context.getPackageName()))
-				/* TODO: large icon not working. It needs to be tested again in future versions.
-				.setLargeIcon(BitmapFactory.decodeResource(r, r.getIdentifier(LARGE_ICON_LABEL, LARGE_ICON_RESOURCE_TYPE, context.getPackageName())))
-				.setStyle(new NotificationCompat.BigPictureStyle()
-						.bigPicture(BitmapFactory.decodeResource(r, r.getIdentifier(LARGE_ICON_LABEL, LARGE_ICON_RESOURCE_TYPE, context.getPackageName())))
-						.bigLargeIcon(BitmapFactory.decodeResource(r, r.getIdentifier(LARGE_ICON_LABEL, LARGE_ICON_RESOURCE_TYPE, context.getPackageName()))))
-					*/
 				.setContentTitle(this.getTitle())
 				.setContentText(this.getContent())
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -292,11 +309,56 @@ public class NotificationData {
 				.setDeleteIntent(onDismissPendingIntent)
 				.setAutoCancel(true);
 
+		if (this.hasLargeIconName()) {
+			int largeIconId = resources.getIdentifier(this.getLargeIconName(), ICON_RESOURCE_TYPE, context.getPackageName());
+			
+			if (largeIconId != 0) {
+				// Use Context to load the drawable (supports Vectors correctly)
+				Drawable drawable = null;
+				try {
+					drawable = context.getDrawable(largeIconId);
+				} catch (Resources.NotFoundException e) {
+					Log.w(LOG_TAG, "Resource not found for large icon: " + this.getLargeIconName());
+				}
+
+				if (drawable != null) {
+					Bitmap largeIconBitmap = drawableToBitmap(drawable);
+					notificationBuilder.setLargeIcon(largeIconBitmap);
+				} else {
+					Log.w(LOG_TAG, "Could not load drawable for large icon: " + this.getLargeIconName());
+				}
+			} else {
+				Log.w(LOG_TAG, "Large icon resource ID not found for name: " + this.getLargeIconName());
+			}
+		}
+
 		if (this.hasBadgeCount()) {
 			notificationBuilder.setNumber(this.getBadgeCount());
 		}
 
 		return notificationBuilder.build();
+	}
+
+	private Bitmap drawableToBitmap(Drawable drawable) {
+		if (drawable instanceof BitmapDrawable) {
+			return ((BitmapDrawable) drawable).getBitmap();
+		}
+
+		// Handle VectorDrawables and other XML drawables
+		int width = drawable.getIntrinsicWidth();
+		int height = drawable.getIntrinsicHeight();
+		
+		// Default to a square if intrinsic size is missing (edge case for some XML shapes)
+		if (width <= 0 || height <= 0) {
+			width = DEFAULT_LARGE_ICON_WIDTH; 
+			height = DEFAULT_LARGE_ICON_HEIGHT;
+		}
+
+		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(bitmap);
+		drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+		drawable.draw(canvas);
+		return bitmap;
 	}
 
 	public Dictionary getRawData() {

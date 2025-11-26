@@ -99,6 +99,9 @@ If using both Android & iOS, ensure **same addon interface version**.
 - `set_badge_count(count)` – set/remove app icon badge (iOS-only)
 - `get_notification_id()` – get ID of last opened notification
 
+**Android-only Methods:**
+- `notificationData.set_large_icon_name("ic_my_large_icon")` – set large notification icon
+
 ---
 
 <a name="signals"></a>
@@ -106,10 +109,10 @@ If using both Android & iOS, ensure **same addon interface version**.
 ## <img src="../addon/icon.png" width="20"> Signals
 
 - `initialization_completed()`: Emitted when the plugin is initialized.
-- `notification_opened(notification_id: int)`: Emitted when a user taps notification.
-- `notification_dismissed(notification_id: int)`: Emitted when a user dismisses notification.
-- `permission_granted(permission_name: String)`: Emitted when permission is granted.
-- `permission_denied(permission_name: String)`: Emitted when permission is denied.
+- `notification_opened(notification_data: NotificationData)`: Emitted when user taps notification.
+- `notification_dismissed(notification_data: NotificationData)`: Emitted when user dismisses notification.
+- `permission_granted(permission_name: String)`: Emitted when notification permission is granted to app.
+- `permission_denied(permission_name: String)`: Emitted when notification permission is denied to app.
 
 ---
 
