@@ -105,6 +105,8 @@ func _on_send_button_pressed() -> void:
 	if _badge_count_checkbox.button_pressed:
 		__notification_data.set_badge_count(roundi(_badge_count_slider.value))
 
+	__notification_data.set_large_icon_name(NotificationScheduler.DEFAULT_ICON_NAME)
+
 	_print_to_screen("Scheduling notification %d with%s a delay of %d seconds (badge count: %d)"
 			% [_notification_id,
 			(" an interval of %d seconds and" % int(_interval_slider.value)) if _interval_checkbox.button_pressed else "",

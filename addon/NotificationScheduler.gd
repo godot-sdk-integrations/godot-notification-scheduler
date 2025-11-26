@@ -20,7 +20,7 @@ const PERMISSION_GRANTED_SIGNAL_NAME = "permission_granted"
 const PERMISSION_DENIED_SIGNAL_NAME = "permission_denied"
 
 const DEFAULT_NOTIFICATION_ID: int = -1
-const DEFAULT_SMALL_ICON_NAME: String = "ic_default_notification"
+const DEFAULT_ICON_NAME: String = "ic_default_notification"
 
 var _plugin_singleton: Object
 
