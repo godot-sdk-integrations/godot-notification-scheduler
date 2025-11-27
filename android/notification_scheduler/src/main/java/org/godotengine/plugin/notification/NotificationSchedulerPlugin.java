@@ -2,7 +2,7 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification;
+package org.godotengine.plugin.notification;
 
 import static android.content.Context.ALARM_SERVICE;
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -19,6 +19,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.icu.util.Calendar;
 import android.os.Build;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.View;
 import android.provider.Settings;
@@ -37,8 +38,8 @@ import org.godotengine.godot.error.Error;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.SignalInfo;
 import org.godotengine.godot.plugin.UsedByGodot;
-import org.godotengine.plugin.android.notification.model.ChannelData;
-import org.godotengine.plugin.android.notification.model.NotificationData;
+import org.godotengine.plugin.notification.model.ChannelData;
+import org.godotengine.plugin.notification.model.NotificationData;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,9 +56,10 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	static NotificationSchedulerPlugin instance;
 
 	private static final SignalInfo INITIALIZATION_COMPLETED_SIGNAL = new SignalInfo("initialization_completed");
-
-	private static final SignalInfo PERMISSION_GRANTED_SIGNAL = new SignalInfo("permission_granted", String.class);
-	private static final SignalInfo PERMISSION_DENIED_SIGNAL = new SignalInfo("permission_denied", String.class);
+	private static final SignalInfo POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL = new SignalInfo("post_notifications_permission_granted", String.class);
+	private static final SignalInfo POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL = new SignalInfo("post_notifications_permission_denied", String.class);
+	private static final SignalInfo BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL = new SignalInfo("battery_optimizations_permission_granted", String.class);
+	private static final SignalInfo BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL = new SignalInfo("battery_optimizations_permission_denied", String.class);
 	private static final SignalInfo NOTIFICATION_OPENED_SIGNAL = new SignalInfo("notification_opened", Dictionary.class);
 	private static final SignalInfo NOTIFICATION_DISMISSED_SIGNAL = new SignalInfo("notification_dismissed", Dictionary.class);
 
@@ -65,6 +67,7 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	private static final String KEY_PENDING_DISMISSED = "pending_dismissed_ids";
 
 	private static final int POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 11803;
+	private static final int BATTERY_OPTIMIZATIONS_PERMISSION_REQUEST_CODE = 11804;
 
 	private static final List<NotificationData> pendingOpenedNotifications = new ArrayList<>();
 
@@ -262,6 +265,59 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	}
 
 	/**
+	 * Checks if the app is already on the battery optimization whitelist.
+	 */
+	@UsedByGodot
+	public boolean is_ignoring_battery_optimizations() {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "is_ignoring_battery_optimizations(): plugin is not initialized!");
+			return false;
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			PowerManager powerManager = (PowerManager) activity.getSystemService(Context.POWER_SERVICE);
+			return powerManager.isIgnoringBatteryOptimizations(activity.getPackageName());
+		} else {
+			Log.i(LOG_TAG, "is_ignoring_battery_optimizations():: can't check permission, because SDK version is " + Build.VERSION.SDK_INT);
+		}
+		return true;
+	}
+
+	/**
+	 * Requests the user to disable battery optimizations for this app.
+	 * Triggers a system dialog.
+	 */
+	@UsedByGodot
+	public int request_ignore_battery_optimizations_permission() {
+		if (!isInitialized) {
+			Log.e(LOG_TAG, "request_ignore_battery_optimizations_permission(): plugin is not initialized!");
+			return Error.ERR_UNCONFIGURED.toNativeValue();
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (is_ignoring_battery_optimizations()) {
+				// Already granted
+				emitSignal(getGodot(), getPluginName(), BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL);
+				return Error.OK.toNativeValue();
+			}
+
+			try {
+				Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+				intent.setData(Uri.parse("package:" + activity.getPackageName()));
+				activity.startActivityForResult(intent, BATTERY_OPTIMIZATIONS_PERMISSION_REQUEST_CODE);
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "request_ignore_battery_optimizations_permission():: Failed due to " + e.getMessage());
+				return Error.FAILED.toNativeValue();
+			}
+		} else {
+			// Not applicable on older Android versions, effectively granted
+			emitSignal(getGodot(), getPluginName(), BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL);
+		}
+
+		return Error.OK.toNativeValue();
+	}
+
+	/**
 	 * Opens APP INFO settings screen
 	 */
 	@UsedByGodot
@@ -299,8 +355,10 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		signals.add(INITIALIZATION_COMPLETED_SIGNAL);
 		signals.add(NOTIFICATION_OPENED_SIGNAL);
 		signals.add(NOTIFICATION_DISMISSED_SIGNAL);
-		signals.add(PERMISSION_GRANTED_SIGNAL);
-		signals.add(PERMISSION_DENIED_SIGNAL);
+		signals.add(POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL);
+		signals.add(POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL);
+		signals.add(BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL);
+		signals.add(BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL);
 		return signals;
 	}
 
@@ -392,6 +450,25 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		super.onMainDestroy();
 	}
 
+	// Handle the result of the system dialog
+	@Override
+	public void onMainActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onMainActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == BATTERY_OPTIMIZATIONS_PERMISSION_REQUEST_CODE) {
+			// Check the state again to be sure, as resultCode can sometimes be misleading for this specific intent
+			if (is_ignoring_battery_optimizations()) {
+				Log.d(LOG_TAG, "onMainActivityResult():: battery optimization permission granted");
+				emitSignal(getGodot(), getPluginName(), BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL,
+						Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+			} else {
+				Log.d(LOG_TAG, "onMainActivityResult():: battery optimization permission denied");
+				emitSignal(getGodot(), getPluginName(), BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL,
+						Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+			}
+		}
+	}
+
 	@Override
 	public void onMainRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		super.onMainRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -401,10 +478,10 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 				// If request is cancelled, the result arrays are empty.
 				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					Log.d(LOG_TAG, "onMainRequestPermissionsResult():: permission request granted");
-					emitSignal(getGodot(), getPluginName(), PERMISSION_GRANTED_SIGNAL, Manifest.permission.POST_NOTIFICATIONS);
+					emitSignal(getGodot(), getPluginName(), POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL, Manifest.permission.POST_NOTIFICATIONS);
 				} else {
 					Log.d(LOG_TAG, "onMainRequestPermissionsResult():: permission request denied");
-					emitSignal(getGodot(), getPluginName(), PERMISSION_DENIED_SIGNAL, Manifest.permission.POST_NOTIFICATIONS);
+					emitSignal(getGodot(), getPluginName(), POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL, Manifest.permission.POST_NOTIFICATIONS);
 				}
 			}
 		} else {

@@ -2,7 +2,7 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification;
+package org.godotengine.plugin.notification;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -11,7 +11,7 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.godotengine.plugin.android.notification.model.NotificationData;
+import org.godotengine.plugin.notification.model.NotificationData;
 
 public class ResultActivity extends AppCompatActivity {
 	private static final String LOG_TAG = NotificationSchedulerPlugin.LOG_TAG + "::" + ResultActivity.class.getSimpleName();

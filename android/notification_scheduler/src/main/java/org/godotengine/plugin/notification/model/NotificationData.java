@@ -2,7 +2,7 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification.model;
+package org.godotengine.plugin.notification.model;
 
 import android.Manifest;
 import android.app.Notification;
@@ -27,9 +27,9 @@ import java.util.Iterator;
 import org.json.JSONObject;
 
 import org.godotengine.godot.Dictionary;
-import org.godotengine.plugin.android.notification.CancelNotificationReceiver;
-import org.godotengine.plugin.android.notification.NotificationSchedulerPlugin;
-import org.godotengine.plugin.android.notification.ResultActivity;
+import org.godotengine.plugin.notification.CancelNotificationReceiver;
+import org.godotengine.plugin.notification.NotificationSchedulerPlugin;
+import org.godotengine.plugin.notification.ResultActivity;
 
 
 public class NotificationData {

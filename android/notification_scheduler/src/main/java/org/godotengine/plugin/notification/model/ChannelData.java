@@ -2,7 +2,7 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification.model;
+package org.godotengine.plugin.notification.model;
 
 import android.app.NotificationManager;
 import android.os.Build;

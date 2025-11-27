@@ -14,8 +14,10 @@
 extern String const INITIALIZATION_COMPLETED;
 extern String const NOTIFICATION_OPENED_SIGNAL;
 extern String const NOTIFICATION_DISMISSED_SIGNAL;
-extern String const PERMISSION_GRANTED_SIGNAL;
-extern String const PERMISSION_DENIED_SIGNAL;
+extern String const POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL;
+extern String const POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL;
+extern String const BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL;
+extern String const BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL;
 
 class NotificationSchedulerPlugin : public Object {
 	GDCLASS(NotificationSchedulerPlugin, Object);
@@ -41,6 +43,8 @@ public:
 	Error initialize();
 	bool has_post_notifications_permission();
 	Error request_post_notifications_permission();
+	bool is_ignoring_battery_optimizations();
+	Error request_ignore_battery_optimizations_permission();
 	Error create_notification_channel(Dictionary dict);
 	Error schedule(Dictionary notificationData);
 	Error cancel(int notificationId);

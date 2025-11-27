@@ -17,7 +17,7 @@ extra.apply {
 	// Plugin details
 	set("pluginNodeName", commonProperties.getProperty("pluginNodeName"))
 	set("pluginName", "${get("pluginNodeName")}Plugin")
-	set("pluginPackageName", "org.godotengine.plugin.android.notification")
+	set("pluginPackageName", "org.godotengine.plugin.notification")
 	set("resultActivityClassPath", "${get("pluginPackageName")}.ResultActivity")
 	set("notificationReceiverClassPath", "${get("pluginPackageName")}.NotificationReceiver")
 	set("cancelReceiverClassPath", "${get("pluginPackageName")}.CancelNotificationReceiver")
