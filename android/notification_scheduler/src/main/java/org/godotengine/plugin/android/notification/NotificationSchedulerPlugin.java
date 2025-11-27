@@ -15,10 +15,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.icu.util.Calendar;
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.provider.Settings;
@@ -40,10 +40,17 @@ import org.godotengine.godot.plugin.UsedByGodot;
 import org.godotengine.plugin.android.notification.model.ChannelData;
 import org.godotengine.plugin.android.notification.model.NotificationData;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 public class NotificationSchedulerPlugin extends GodotPlugin {
-	public static final String LOG_TAG = "godot::" + NotificationSchedulerPlugin.class.getSimpleName();
+	public static final String CLASS_NAME = NotificationSchedulerPlugin.class.getSimpleName();
+	public static final String LOG_TAG = "godot::" + CLASS_NAME;
 
 	static NotificationSchedulerPlugin instance;
 
@@ -54,7 +61,15 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	private static final SignalInfo NOTIFICATION_OPENED_SIGNAL = new SignalInfo("notification_opened", Dictionary.class);
 	private static final SignalInfo NOTIFICATION_DISMISSED_SIGNAL = new SignalInfo("notification_dismissed", Dictionary.class);
 
+	private static final String PREF_NAME = CLASS_NAME + "_prefs";
+	private static final String KEY_PENDING_DISMISSED = "pending_dismissed_ids";
+
 	private static final int POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 11803;
+
+	private static final List<NotificationData> pendingOpenedNotifications = new ArrayList<>();
+
+	// Record of IDs we have already handled to prevent duplicates (using a Set ensures O(1) lookup time)
+	private static final Set<Integer> processedNotificationIds = new HashSet<>();
 
 	private Activity activity;
 	private boolean isInitialized;
@@ -120,7 +135,7 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	 *
 	 * @param data dictionary containing notification data, including delaySeconds that specifies
 	 *				how many seconds from now to schedule the notification.
-	 */
+	*/
 	@UsedByGodot
 	public int schedule(Dictionary data) {
 		if (!isInitialized) {
@@ -300,6 +315,7 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	@Override
 	public void onGodotSetupCompleted() {
 		super.onGodotSetupCompleted();
+
 		if (this.activity != null) {
 			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
 				if (NotificationManagerCompat.from(this.activity.getApplicationContext()).areNotificationsEnabled()) {
@@ -307,9 +323,61 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 				}
 			}
 
-			NotificationData notificationData = new NotificationData(this.activity.getIntent());
-			if (notificationData.isValid()) {
-				handleNotificationOpened(notificationData);
+			// Flush pending OPENED notifications
+			if (!pendingOpenedNotifications.isEmpty()) {
+				for (NotificationData data : pendingOpenedNotifications) {
+					emitSignal(getGodot(), getPluginName(), NOTIFICATION_OPENED_SIGNAL, data.getRawData());
+					processedNotificationIds.add(data.getId()); // Mark as processed
+					Log.i(LOG_TAG, "onGodotSetupCompleted():: Flushed queued OPEN event for ID: " + data.getId());
+				}
+				pendingOpenedNotifications.clear();
+			}
+
+			Context context = activity.getApplicationContext();
+			SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+			
+			// Retrieve the set of JSON strings
+			Set<String> dismissedJsonSet = prefs.getStringSet(KEY_PENDING_DISMISSED, new HashSet<>());
+			if (!dismissedJsonSet.isEmpty()) {
+				Log.i(LOG_TAG, "Found " + dismissedJsonSet.size() + " dismissed notifications in storage.");
+
+				for (String notificationJson : dismissedJsonSet) {
+					try {
+						Log.d(LOG_TAG, "Processing JSON dismissed notification data: " + notificationJson);
+
+						// Convert JSON String back to Godot Dictionary
+						JSONObject jsonObject = new JSONObject(notificationJson);
+						NotificationData dismissedData = new NotificationData(jsonObject);
+						emitSignal(getGodot(), getPluginName(), NOTIFICATION_DISMISSED_SIGNAL, dismissedData.getRawData());
+
+						// Mark ID as processed
+						processedNotificationIds.add(dismissedData.getId()); 
+						
+						Log.i(LOG_TAG, "Emitted signal for stored dismissed ID: " + dismissedData.getId());
+						
+					} catch (JSONException e) {
+						Log.e(LOG_TAG, "Failed to parse stored JSON for dismissed notification.", e);
+					}
+				}
+
+				// Clear the storage
+				prefs.edit().remove(KEY_PENDING_DISMISSED).apply();
+			}
+
+			// Check the launch ("cold start") Intent
+			NotificationData intentData = new NotificationData(this.activity.getIntent());
+
+			if (intentData.isValid()) {
+				int id = intentData.getId();
+				
+				// Check if we already processed this ID from the pending queue
+				if (!processedNotificationIds.contains(id)) {
+					// It's a new one (likely the app was launched directly by the intent, not the receiver)
+					handleNotificationOpened(intentData); 
+					Log.i(LOG_TAG, "onGodotSetupCompleted():: Processed Intent data for ID: " + id);
+				} else {
+					Log.i(LOG_TAG, "onGodotSetupCompleted():: Skipping Intent data for ID: " + id + " (Already processed via queue)");
+				}
 			}
 		} else {
 			Log.e(LOG_TAG, "onGodotSetupCompleted():: activity is null!");
@@ -319,6 +387,8 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	@Override
 	public void onMainDestroy() {
 		instance = null;
+		processedNotificationIds.clear();
+		pendingOpenedNotifications.clear();
 		super.onMainDestroy();
 	}
 
@@ -344,17 +414,48 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 
 	static void handleNotificationOpened(NotificationData notificationData) {
 		if (instance != null) {
+			// Plugin is ready, emit immediately
 			instance.emitSignal(instance.getGodot(), instance.getPluginName(), NOTIFICATION_OPENED_SIGNAL, notificationData.getRawData());
+			// Mark as processed so we don't handle it again from the Intent
+			processedNotificationIds.add(notificationData.getId());
 		} else {
-			Log.e(LOG_TAG, String.format("%s():: Plugin instance not found!.", "handleNotificationOpened"));
+			// Plugin not ready, queue it
+			Log.i(LOG_TAG, "handleNotificationOpened():: Plugin not ready, queueing event ID: " + notificationData.getId());
+			pendingOpenedNotifications.add(notificationData);
 		}
 	}
 
-	static void handleNotificationDismissed(NotificationData notificationData) {
+	static void handleNotificationDismissed(Context context, NotificationData notificationData) {
 		if (instance != null) {
 			instance.emitSignal(instance.getGodot(), instance.getPluginName(), NOTIFICATION_DISMISSED_SIGNAL, notificationData.getRawData());
 		} else {
-			Log.e(LOG_TAG, String.format("%s():: Plugin instance not found!.", "handleNotificationDismissed"));
+			// App is not running or not ready. Persist the full object to disk.
+			Log.i(LOG_TAG, "Plugin not ready. Persisting full dismissed data for ID: " + notificationData.getId());
+			saveDismissedDataToPrefs(context, notificationData);
+		}
+	}
+
+	/**
+	 * Saves the full NotificationData as a JSON string to SharedPreferences.
+	 */
+	public static void saveDismissedDataToPrefs(Context context, NotificationData notificationData) {
+		try {
+			// Convert Dictionary (Map) to JSONObject
+			JSONObject jsonObject = new JSONObject(notificationData.getRawData());
+			String notificationJson = jsonObject.toString();
+
+			SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+			// Use a Set to store multiple JSON strings (for multiple pending dismissals)
+			Set<String> dismissedData = prefs.getStringSet(KEY_PENDING_DISMISSED, new HashSet<>());
+
+			Set<String> newSet = new HashSet<>(dismissedData);
+			newSet.add(notificationJson);
+
+			prefs.edit().putStringSet(KEY_PENDING_DISMISSED, newSet).apply();
+			Log.d(LOG_TAG, "Saved full dismissed data to prefs: " + notificationJson);
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "Failed to save NotificationData to SharedPreferences", e);
 		}
 	}
 
@@ -372,9 +473,15 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
 		long timeAfterDelay = calculateTimeAfterDelay(notificationData.getDelay());
-		alarmManager.set(AlarmManager.RTC_WAKEUP, timeAfterDelay,
-				PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
-						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
+						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+		} else {
+			alarmManager.set(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+		}
 		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d.", notificationId, timeAfterDelay));
 	}
 

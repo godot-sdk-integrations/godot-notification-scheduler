@@ -22,7 +22,9 @@ A unified GDScript interface for scheduling **local notifications** on **Android
 - [Installation](#installation)
 - [Usage](#usage)
 - [Signals](#signals)
+- [Methods](#methods)
 - [Error Codes](#error-codes)
+- [Classes](#classes)
 - [Platform-Specific Notes](#platform-specific-notes)
 - [Links](#links)
 - [All Plugins](#all-plugins)
@@ -94,14 +96,6 @@ If using both Android & iOS, ensure **same addon interface version**.
 	var res = $NotificationScheduler.schedule(data)
 	```
 
-**Other Methods:**
-- `cancel(id)` – cancel before opened/dismissed
-- `set_badge_count(count)` – set/remove app icon badge (iOS-only)
-- `get_notification_id()` – get ID of last opened notification
-
-**Android-only Methods:**
-- `notificationData.set_large_icon_name("ic_my_large_icon")` – set large notification icon
-
 ---
 
 <a name="signals"></a>
@@ -113,6 +107,24 @@ If using both Android & iOS, ensure **same addon interface version**.
 - `notification_dismissed(notification_data: NotificationData)`: Emitted when user dismisses notification.
 - `permission_granted(permission_name: String)`: Emitted when notification permission is granted to app.
 - `permission_denied(permission_name: String)`: Emitted when notification permission is denied to app.
+
+---
+
+<a name="methods"></a>
+
+## <img src="../addon/icon.png" width="20"> Methods
+
+- `initialize()` - initialize plugin
+- `create_notification_channel(NotificationChannel)` - create a new notification channel with given data
+- `schedule(NotificationData)` - schedule a new notification with given data
+- `cancel(id)` – cancel notification with given Id before opened/dismissed
+- `get_notification_id()` – get ID of last opened notification
+- `has_post_notifications_permission()` – returns true if app has already been granted permissions to post notifications
+- `request_post_notifications_permission()` – request permissions to post notifications from user
+- `open_app_info_settings()` - open the system settings screen for app
+
+### <img src="../addon/icon.png" width="16"> iOS-only Methods
+- `set_badge_count(count)` – show/hide app icon badge with count (on Android, use `NotificationData`'s `set_badge_count()` method)
 
 ---
 
@@ -130,22 +142,44 @@ If using both Android & iOS, ensure **same addon interface version**.
 
 ---
 
+<a name="classes"></a>
+
+## <img src="../addon/icon.png" width="20"> Classes
+
+### <img src="../addon/icon.png" width="16"> NotificationChannel
+- Encapsulates data that defines the notification channel.
+- Properties: `id`, `name`, `description`, `importance`, `badge_enabled`
+
+### <img src="../addon/icon.png" width="16"> NotificationData
+- Encapsulates data that defines the notification.
+- Properties: `notification_id`, `channel_id`, `title`, `content`, `small_icon_name`, `large_icon_name`, `delay`, `deeplink`, `interval`, `badge_count`, `custom_data`
+- Note: `small_icon_name` and `large_icon_name` are only used on Android.
+
+### <img src="../addon/icon.png" width="16"> CustomData
+- Encapsulates extra data to be sent and received along with other notification data.
+- Allows setting of any number of `bool`, `int`, `float`, or `String` properties.
+
+---
+
 <a name="platform-specific-notes"></a>
 
 ## <img src="../addon/icon.png" width="20"> Platform-Specific Notes
 
-### Android
+### <img src="../addon/icon.png" width="16"> Android
 - **Default icon:** `ic_default_notification` in `res://assets/NotificationSchedulerPlugin`
 - **Custom icon:**
   1. Generate via Android Studio → **Image Asset Studio** → **Notification Icons**
   2. Copy generated drawables into `res://assets/NotificationSchedulerPlugin`
   3. Use `set_small_icon_name("icon_name")`
+- **App Optimization:**
+  - Check app optimization settings
+  - If app settings are set to `Optimized` or `Restricted`, notifications may not be delivered when app is not running
 - **Troubleshooting:**
   - Logs: `adb logcat | grep 'godot'` (Linux), `adb.exe logcat | select-string "godot"` (Windows)
   - No small icon error: ensure icons exist in assets directory.
   - Battery restrictions: check **Settings → Apps → Your App → Battery**.
 
-### iOS
+### <img src="../addon/icon.png" width="16"> iOS
 - Set notification icons in **Project → Export → iOS**.
 - System limits:
 	- Max repeating notifications: 64

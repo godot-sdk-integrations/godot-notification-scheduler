@@ -27,7 +27,7 @@ public class CancelNotificationReceiver extends BroadcastReceiver {
 					"onReceive"));
 		} else if (intent.hasExtra(NotificationData.DATA_KEY_ID)) {
 			NotificationData notificationData = new NotificationData(intent);
-			NotificationSchedulerPlugin.handleNotificationDismissed(notificationData);
+			NotificationSchedulerPlugin.handleNotificationDismissed(context, notificationData);
 		} else {
 			Log.e(LOG_TAG, String.format("%s():: %s extra not found in intent. Unable to generate notification.",
 					"onReceive", NotificationData.DATA_KEY_ID));

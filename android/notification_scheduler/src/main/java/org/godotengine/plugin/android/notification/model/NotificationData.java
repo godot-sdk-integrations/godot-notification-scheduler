@@ -22,6 +22,10 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
+import java.util.Iterator;
+
+import org.json.JSONObject;
+
 import org.godotengine.godot.Dictionary;
 import org.godotengine.plugin.android.notification.CancelNotificationReceiver;
 import org.godotengine.plugin.android.notification.NotificationSchedulerPlugin;
@@ -54,6 +58,64 @@ public class NotificationData {
 
 	public NotificationData(Dictionary data) {
 		this.data = data;
+	}
+
+	public NotificationData(JSONObject json) {
+		this.data = new Dictionary();
+		if (json.has(DATA_KEY_ID)) {
+			data.put(DATA_KEY_ID, json.opt(DATA_KEY_ID));
+		}
+		if (json.has(DATA_KEY_CHANNEL_ID)) {
+			data.put(DATA_KEY_CHANNEL_ID, json.opt(DATA_KEY_CHANNEL_ID));
+		}
+		if (json.has(DATA_KEY_TITLE)) {
+			data.put(DATA_KEY_TITLE, json.opt(DATA_KEY_TITLE));
+		}
+		if (json.has(DATA_KEY_CONTENT)) {
+			data.put(DATA_KEY_CONTENT, json.opt(DATA_KEY_CONTENT));
+		}
+		if (json.has(DATA_KEY_SMALL_ICON_NAME)) {
+			data.put(DATA_KEY_SMALL_ICON_NAME, json.opt(DATA_KEY_SMALL_ICON_NAME));
+		}
+		if (json.has(DATA_KEY_LARGE_ICON_NAME)) {
+			data.put(DATA_KEY_LARGE_ICON_NAME, json.opt(DATA_KEY_LARGE_ICON_NAME));
+		}
+		if (json.has(DATA_KEY_DELAY)) {
+			data.put(DATA_KEY_DELAY, json.opt(DATA_KEY_DELAY));
+		}
+		if (json.has(DATA_KEY_DEEPLINK)) {
+			data.put(DATA_KEY_DEEPLINK, json.opt(DATA_KEY_DEEPLINK));
+		}
+		if (json.has(DATA_KEY_INTERVAL)) {
+			data.put(DATA_KEY_INTERVAL, json.opt(DATA_KEY_INTERVAL));
+		}
+		if (json.has(DATA_KEY_BADGE_COUNT)) {
+			data.put(DATA_KEY_BADGE_COUNT, json.opt(DATA_KEY_BADGE_COUNT));
+		}
+		if (json.has(DATA_KEY_CUSTOM_DATA)) {
+			Object customDataObj = json.opt(DATA_KEY_CUSTOM_DATA);
+			if (customDataObj instanceof JSONObject) {
+				JSONObject customDataJson = (JSONObject) customDataObj;
+				if (customDataJson != null) {
+					Dictionary customDataDict = new Dictionary();
+
+					Iterator<String> keys = customDataJson.keys();
+					while (keys.hasNext()) {
+						String key = keys.next();
+						customDataDict.put(key, customDataJson.opt(key));
+					}
+
+					data.put(DATA_KEY_CUSTOM_DATA, customDataDict);
+				} else {
+					Log.w(LOG_TAG, "Custom data bundle is null. Skipping.");
+				}
+			} else {
+				Log.w(LOG_TAG, "Unexpected custom data type (" + customDataObj.getClass().getName() + "). Skipping.");
+			}
+		}
+		if (json.has(OPTION_KEY_RESTART_APP)) {
+			data.put(OPTION_KEY_RESTART_APP, json.opt(OPTION_KEY_RESTART_APP));
+		}
 	}
 
 	public NotificationData(Intent intent) {
