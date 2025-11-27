@@ -2,7 +2,7 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification;
+package org.godotengine.plugin.notification;
 
 import android.app.Notification;
 import android.content.BroadcastReceiver;
@@ -12,8 +12,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationManagerCompat;
 
-import org.godotengine.plugin.android.notification.model.NotificationData;
-import org.godotengine.plugin.android.notification.NotificationSchedulerPlugin;
+import org.godotengine.plugin.notification.model.NotificationData;
+import org.godotengine.plugin.notification.NotificationSchedulerPlugin;
 
 
 public class NotificationReceiver extends BroadcastReceiver {

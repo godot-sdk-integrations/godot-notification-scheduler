@@ -101,19 +101,21 @@ If using both Android & iOS, ensure **same addon interface version**.
 <a name="signals"></a>
 
 ## <img src="../addon/icon.png" width="20"> Signals
-
 - `initialization_completed()`: Emitted when the plugin is initialized.
+- `post_notifications_permission_granted(permission_name: String)`: Emitted when notification permission is granted to app.
+- `post_notifications_permission_denied(permission_name: String)`: Emitted when notification permission is denied to app.
 - `notification_opened(notification_data: NotificationData)`: Emitted when user taps notification.
 - `notification_dismissed(notification_data: NotificationData)`: Emitted when user dismisses notification.
-- `permission_granted(permission_name: String)`: Emitted when notification permission is granted to app.
-- `permission_denied(permission_name: String)`: Emitted when notification permission is denied to app.
+
+### <img src="../addon/icon.png" width="16"> Android-only Signals
+- `battery_optimizations_permission_granted(permission_name: String)`: Emitted when battery optimization exemption permission is granted to app.
+- `battery_optimizations_permission_granted(permission_name: String)`: Emitted when battery optimization exemption is denied to app.
 
 ---
 
 <a name="methods"></a>
 
 ## <img src="../addon/icon.png" width="20"> Methods
-
 - `initialize()` - initialize plugin
 - `create_notification_channel(NotificationChannel)` - create a new notification channel with given data
 - `schedule(NotificationData)` - schedule a new notification with given data
@@ -122,6 +124,10 @@ If using both Android & iOS, ensure **same addon interface version**.
 - `has_post_notifications_permission()` – returns true if app has already been granted permissions to post notifications
 - `request_post_notifications_permission()` – request permissions to post notifications from user
 - `open_app_info_settings()` - open the system settings screen for app
+
+### <img src="../addon/icon.png" width="16"> Android-only Methods
+- `is_ignoring_battery_optimizations()` – returns true if app has already been granted permissions to ignore battery optimizations
+- `request_ignore_battery_optimizations_permission()` – request permissions to ignore battery optimizations from user
 
 ### <img src="../addon/icon.png" width="16"> iOS-only Methods
 - `set_badge_count(count)` – show/hide app icon badge with count (on Android, use `NotificationData`'s `set_badge_count()` method)
@@ -174,6 +180,8 @@ If using both Android & iOS, ensure **same addon interface version**.
 - **App Optimization:**
   - Check app optimization settings
   - If app settings are set to `Optimized` or `Restricted`, notifications may not be delivered when app is not running
+- **MIUI:**
+  - `request_post_notifications_permission()` may not work reliably on Xiaomi devices to fully exempt an app from **MIUI**'s custom battery management features.
 - **Troubleshooting:**
   - Logs: `adb logcat | grep 'godot'` (Linux), `adb.exe logcat | select-string "godot"` (Windows)
   - No small icon error: ensure icons exist in assets directory.

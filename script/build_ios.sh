@@ -32,6 +32,10 @@ PLUGIN_PACKAGE_NAME=$($SCRIPT_DIR/get_gradle_property.sh pluginPackageName $ANDR
 ANDROID_DEPENDENCIES=$($SCRIPT_DIR/get_android_dependencies.sh)
 GODOT_VERSION=$($SCRIPT_DIR/get_config_property.sh -f $COMMON_CONFIG_FILE godotVersion)
 GODOT_RELEASE_TYPE=$($SCRIPT_DIR/get_config_property.sh -f $COMMON_CONFIG_FILE godotReleaseType)
+EXTRA_PROPERTIES=()
+while IFS= read -r line; do
+	EXTRA_PROPERTIES+=("$line")
+done < <($SCRIPT_DIR/get_config_property.sh -a -f $COMMON_CONFIG_FILE extraProperties)
 IOS_FRAMEWORKS=()
 while IFS= read -r line; do
 	IOS_FRAMEWORKS+=("$line")
@@ -48,10 +52,6 @@ SUPPORTED_GODOT_VERSIONS=()
 while IFS= read -r line; do
 	SUPPORTED_GODOT_VERSIONS+=($line)
 done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE valid_godot_versions)
-EXTRA_PROPERTIES=()
-while IFS= read -r line; do
-	EXTRA_PROPERTIES+=("$line")
-done < <($SCRIPT_DIR/get_config_property.sh -a -f $IOS_CONFIG_FILE extra_properties)
 BUILD_TIMEOUT=40	# increase this value using -t option if device is not able to generate all headers before godot build is killed
 
 do_clean=false

@@ -2,14 +2,14 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-package org.godotengine.plugin.android.notification;
+package org.godotengine.plugin.notification;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import org.godotengine.plugin.android.notification.model.NotificationData;
+import org.godotengine.plugin.notification.model.NotificationData;
 
 
 public class CancelNotificationReceiver extends BroadcastReceiver {

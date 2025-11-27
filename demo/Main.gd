@@ -15,20 +15,21 @@ extends Node
 @export var notification_text: String = "This is a demo notification. Have you received it?"
 
 @onready var notification_scheduler: NotificationScheduler = $NotificationScheduler as NotificationScheduler
-@onready var _label: RichTextLabel = $CanvasLayer/CenterContainer/VBoxContainer/RichTextLabel as RichTextLabel
-@onready var _delay_slider: HSlider = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer/DelayHSlider as HSlider
-@onready var _delay_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer/ValueLabel as Label
-@onready var _interval_checkbox: CheckBox = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalCheckBox as CheckBox
-@onready var _interval_slider: HSlider = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalHSlider as HSlider
-@onready var _interval_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/ValueLabel as Label
-@onready var _permission_button: Button = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/PermissionButton as Button
-@onready var _restart_checkbox: CheckBox = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/RestartCheckBox as CheckBox
-@onready var _badge_count_slider: HSlider = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/BadgeCountHSlider as HSlider
-@onready var _badge_count_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/ValueLabel as Label
-@onready var _badge_count_checkbox: CheckBox = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/CheckBox as CheckBox
-@onready var _id_value_label: Label = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel as Label
-@onready var _android_texture_rect: TextureRect = $CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer/AndroidTextureRect as TextureRect
-@onready var _ios_texture_rect: TextureRect = $CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer/iOSTextureRect as TextureRect
+@onready var _label: RichTextLabel = $CanvasLayer/MainContainer/VBoxContainer/RichTextLabel as RichTextLabel
+@onready var _delay_slider: HSlider = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer/DelayHSlider as HSlider
+@onready var _delay_value_label: Label = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer/ValueLabel as Label
+@onready var _interval_checkbox: CheckBox = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalCheckBox as CheckBox
+@onready var _interval_slider: HSlider = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalHSlider as HSlider
+@onready var _interval_value_label: Label = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/ValueLabel as Label
+@onready var _notification_permission_button: Button = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer/NotificationPermissionButton as Button
+@onready var _optimization_permission_button: Button = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer/OptimizationPermissionButton as Button
+@onready var _restart_checkbox: CheckBox = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/RestartCheckBox as CheckBox
+@onready var _badge_count_slider: HSlider = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/BadgeCountHSlider as HSlider
+@onready var _badge_count_value_label: Label = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/ValueLabel as Label
+@onready var _badge_count_checkbox: CheckBox = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/CheckBox as CheckBox
+@onready var _id_value_label: Label = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel as Label
+@onready var _android_texture_rect: TextureRect = $CanvasLayer/MainContainer/VBoxContainer/HBoxContainer/AndroidTextureRect as TextureRect
+@onready var _ios_texture_rect: TextureRect = $CanvasLayer/MainContainer/VBoxContainer/HBoxContainer/iOSTextureRect as TextureRect
 
 var _active_texture_rect: TextureRect
 
@@ -48,7 +49,7 @@ func _ready() -> void:
 	_badge_count_value_label.text = str(int(_badge_count_slider.value))
 
 	_id_value_label.text = str(_notification_id)
-	var __popup_menu: PopupMenu = $CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/MenuButton.get_popup()
+	var __popup_menu: PopupMenu = $CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/MenuButton.get_popup()
 	__popup_menu.id_pressed.connect(_on_notification_id_selected)
 
 	notification_scheduler.initialize()
@@ -60,8 +61,14 @@ func _on_notification_scheduler_initialization_completed() -> void:
 	if notification_scheduler.has_post_notifications_permission():
 		_create_channel()
 	else:
-		_permission_button.disabled = false
-		_print_to_screen("App does not have required notification permissions!")
+		_notification_permission_button.disabled = false
+		_print_to_screen("App does not have post notification permissions!")
+
+	if notification_scheduler.is_ignoring_battery_optimizations():
+		_print_to_screen("App is exempt from battery optimizations")
+	else:
+		_optimization_permission_button.disabled = false
+		_print_to_screen("App does not have battery optimization exemption permissions!")
 
 
 func _create_channel() -> void:
@@ -85,7 +92,7 @@ func _create_channel() -> void:
 
 func _on_notification_id_selected(a_notification_id: int) -> void:
 	_notification_id = a_notification_id
-	$CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel.text = str(a_notification_id)
+	$CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/IdValueLabel.text = str(a_notification_id)
 
 
 func _on_send_button_pressed() -> void:
@@ -106,6 +113,8 @@ func _on_send_button_pressed() -> void:
 		__notification_data.set_badge_count(roundi(_badge_count_slider.value))
 
 	__notification_data.set_large_icon_name(NotificationScheduler.DEFAULT_ICON_NAME)
+	__notification_data.set_custom_data(CustomData.new().set_int_property("my_test_int", 14)
+			.set_string_property("my_test_string", "just testing"))
 
 	_print_to_screen("Scheduling notification %d with%s a delay of %d seconds (badge count: %d)"
 			% [_notification_id,
@@ -129,6 +138,8 @@ func _print_to_screen(a_message: String, a_is_error: bool = false) -> void:
 	else:
 		NotificationScheduler.log_info(a_message)
 
+	_label.scroll_to_line(_label.get_line_count() - 1)
+
 
 func _on_delay_h_slider_value_changed(value: float) -> void:
 	_delay_value_label.text = str(int(value))
@@ -142,28 +153,46 @@ func _on_badge_count_h_slider_value_changed(value: float) -> void:
 	_badge_count_value_label.text = str(int(value))
 
 
-func _on_permission_button_pressed() -> void:
-	_permission_button.disabled = true
+func _on_notification_permission_button_pressed() -> void:
+	_notification_permission_button.disabled = true
 	notification_scheduler.request_post_notifications_permission()
 
 
-func _on_notification_scheduler_permission_granted(permission_name: String) -> void:
+func _on_optimization_permission_button_pressed() -> void:
+	_optimization_permission_button.disabled = true
+	notification_scheduler.request_ignore_battery_optimizations_permission()
+
+
+func _on_notification_scheduler_post_notifications_permission_granted(permission_name: String) -> void:
 	_print_to_screen("%s permission granted" % permission_name)
 
 	_create_channel()
 
 
-func _on_notification_scheduler_permission_denied(permission_name: String) -> void:
+func _on_notification_scheduler_post_notifications_permission_denied(permission_name: String) -> void:
 	_print_to_screen("%s permission denied" % permission_name)
+
+
+func _on_notification_scheduler_battery_optimizations_permission_granted(permission_name: String) -> void:
+	_print_to_screen("%s permission granted" % permission_name)
+
+
+func _on_notification_scheduler_battery_optimizations_permission_denied(permission_name: String) -> void:
+	_print_to_screen("%s permission denied" % permission_name)
+	_optimization_permission_button.disabled = false
 
 
 func _on_notification_scheduler_notification_opened(a_notification: NotificationData) -> void:
 	_print_to_screen("Notification %d opened" % a_notification.get_id())
+	_print_to_screen("CustomData.my_test_int: %d" % a_notification.get_custom_data().get_int_property("my_test_int"))
+	_print_to_screen("CustomData.my_test_string: %s" % a_notification.get_custom_data().get_string_property("my_test_string"))
 	notification_scheduler.set_badge_count(0)
 
 
 func _on_notification_scheduler_notification_dismissed(a_notification: NotificationData) -> void:
 	_print_to_screen("Notification %d dismissed" % a_notification.get_id())
+	_print_to_screen("CustomData.my_test_int: %d" % a_notification.get_custom_data().get_int_property("my_test_int"))
+	_print_to_screen("CustomData.my_test_string: %s" % a_notification.get_custom_data().get_string_property("my_test_string"))
 	notification_scheduler.set_badge_count(0)
 
 

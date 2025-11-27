@@ -15,8 +15,10 @@
 String const INITIALIZATION_COMPLETED = "initialization_completed";
 String const NOTIFICATION_OPENED_SIGNAL = "notification_opened";
 String const NOTIFICATION_DISMISSED_SIGNAL = "notification_dismissed";
-String const PERMISSION_GRANTED_SIGNAL = "permission_granted";
-String const PERMISSION_DENIED_SIGNAL = "permission_denied";
+String const POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL = "post_notifications_permission_granted";
+String const POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL = "post_notifications_permission_denied";
+String const BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL = "battery_optimizations_permission_granted";
+String const BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL = "battery_optimizations_permission_denied";
 
 NotificationSchedulerPlugin* NotificationSchedulerPlugin::instance = NULL;
 
@@ -30,12 +32,16 @@ void NotificationSchedulerPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_badge_count"), &NotificationSchedulerPlugin::set_badge_count);
 	ClassDB::bind_method(D_METHOD("get_notification_id"), &NotificationSchedulerPlugin::get_notification_id);
 	ClassDB::bind_method(D_METHOD("open_app_info_settings"), &NotificationSchedulerPlugin::open_app_info_settings);
+	ClassDB::bind_method(D_METHOD("is_ignoring_battery_optimizations"), &NotificationSchedulerPlugin::is_ignoring_battery_optimizations);
+	ClassDB::bind_method(D_METHOD("request_ignore_battery_optimizations_permission"), &NotificationSchedulerPlugin::request_ignore_battery_optimizations_permission);
 
 	ADD_SIGNAL(MethodInfo(INITIALIZATION_COMPLETED));
 	ADD_SIGNAL(MethodInfo(NOTIFICATION_OPENED_SIGNAL, PropertyInfo(Variant::DICTIONARY, "notification_data")));
 	ADD_SIGNAL(MethodInfo(NOTIFICATION_DISMISSED_SIGNAL, PropertyInfo(Variant::DICTIONARY, "notification_data")));
-	ADD_SIGNAL(MethodInfo(PERMISSION_GRANTED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
-	ADD_SIGNAL(MethodInfo(PERMISSION_DENIED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
+	ADD_SIGNAL(MethodInfo(POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
+	ADD_SIGNAL(MethodInfo(POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
+	ADD_SIGNAL(MethodInfo(BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
+	ADD_SIGNAL(MethodInfo(BATTERY_OPTIMIZATIONS_PERMISSION_DENIED_SIGNAL, PropertyInfo(Variant::STRING, "permission_name")));
 }
 
 Error NotificationSchedulerPlugin::initialize() {
@@ -107,7 +113,7 @@ bool NotificationSchedulerPlugin::has_post_notifications_permission() {
 		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
 		return false;
 	}
-	NSLog(@"NotificationSchedulerPlugin has_post_notifications_permission");
+	NSLog(@"NotificationSchedulerPlugin: has_post_notifications_permission()");
 	bool has_authorization = false;
 	switch(authorizationStatus) {
 		case UNAuthorizationStatusAuthorized:
@@ -130,7 +136,7 @@ Error NotificationSchedulerPlugin::request_post_notifications_permission() {
 		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
 		return ERR_UNCONFIGURED;
 	}
-	NSLog(@"NotificationSchedulerPlugin request_post_notifications_permission");
+	NSLog(@"NotificationSchedulerPlugin: request_post_notifications_permission()");
 	UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
 	[center requestAuthorizationWithOptions:(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge)
 				completionHandler: ^(BOOL granted, NSError * _Nullable error) {
@@ -139,13 +145,36 @@ Error NotificationSchedulerPlugin::request_post_notifications_permission() {
 		} else {
 			if (granted) {
 				this->authorizationStatus = UNAuthorizationStatusAuthorized;
-				this->call_deferred("emit_signal", PERMISSION_GRANTED_SIGNAL, "UNAuthorizationOptionSound|UNAuthorizationOptionAlert|UNAuthorizationOptionBadge");
+				this->call_deferred("emit_signal", POST_NOTIFICATIONS_PERMISSION_GRANTED_SIGNAL,
+						"UNAuthorizationOptionSound|UNAuthorizationOptionAlert|UNAuthorizationOptionBadge");
 			} else {
 				this->authorizationStatus = UNAuthorizationStatusDenied;
-				this->call_deferred("emit_signal", PERMISSION_DENIED_SIGNAL, "UNAuthorizationOptionSound|UNAuthorizationOptionAlert|UNAuthorizationOptionBadge");
+				this->call_deferred("emit_signal", POST_NOTIFICATIONS_PERMISSION_DENIED_SIGNAL,
+						"UNAuthorizationOptionSound|UNAuthorizationOptionAlert|UNAuthorizationOptionBadge");
 			}
 		}
 	}];
+	return OK;
+}
+
+bool NotificationSchedulerPlugin::is_ignoring_battery_optimizations() {
+	if (!is_initialized) {
+		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
+		return false;
+	}
+	NSLog(@"NotificationSchedulerPlugin: is_ignoring_battery_optimizations() method is not supported on iOS");
+	return true;
+}
+
+Error NotificationSchedulerPlugin::request_ignore_battery_optimizations_permission() {
+	if (!is_initialized) {
+		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
+		return ERR_UNCONFIGURED;
+	}
+	NSLog(@"NotificationSchedulerPlugin: request_ignore_battery_optimizations_permission() method is not supported on iOS");
+	UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+	this->call_deferred("emit_signal", BATTERY_OPTIMIZATIONS_PERMISSION_GRANTED_SIGNAL,
+			"request_ignore_battery_optimizations_permission");
 	return OK;
 }
 

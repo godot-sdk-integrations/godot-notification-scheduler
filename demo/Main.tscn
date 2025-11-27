@@ -10,54 +10,58 @@ script = ExtResource("1_r6ksj")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer"]
+[node name="MainContainer" type="MarginContainer" parent="CanvasLayer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MainContainer"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 8
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="AndroidTextureRect" type="TextureRect" parent="CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="AndroidTextureRect" type="TextureRect" parent="CanvasLayer/MainContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(0, 128)
 layout_mode = 2
 texture = ExtResource("2_7rmrj")
 expand_mode = 3
 stretch_mode = 5
 
-[node name="iOSTextureRect" type="TextureRect" parent="CanvasLayer/CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="iOSTextureRect" type="TextureRect" parent="CanvasLayer/MainContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(0, 128)
 layout_mode = 2
 texture = ExtResource("3_cm0pq")
 expand_mode = 3
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Notification Scheduler Demo"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="Label" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Delay (s): "
 
-[node name="DelayHSlider" type="HSlider" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
+[node name="DelayHSlider" type="HSlider" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 1.0
@@ -68,18 +72,18 @@ rounded = true
 tick_count = 10
 ticks_on_borders = true
 
-[node name="ValueLabel" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
+[node name="ValueLabel" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 
-[node name="IntervalHBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="IntervalHBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="IntervalCheckBox" type="CheckBox" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
+[node name="IntervalCheckBox" type="CheckBox" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
 layout_mode = 2
 text = "Interval (s):"
 
-[node name="IntervalHSlider" type="HSlider" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
+[node name="IntervalHSlider" type="HSlider" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 60.0
@@ -89,46 +93,66 @@ exp_edit = true
 rounded = true
 tick_count = 10
 
-[node name="ValueLabel" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
+[node name="ValueLabel" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 
-[node name="BadgeCountHBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="BadgeCountHBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="CheckBox" type="CheckBox" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
+[node name="CheckBox" type="CheckBox" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
 layout_mode = 2
 text = "Badge Count: "
 
-[node name="BadgeCountHSlider" type="HSlider" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
+[node name="BadgeCountHSlider" type="HSlider" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 20.0
 tick_count = 8
 ticks_on_borders = true
 
-[node name="ValueLabel" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
+[node name="ValueLabel" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 
-[node name="RestartCheckBox" type="CheckBox" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="RestartCheckBox" type="CheckBox" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Upon notification opened, restart app if running"
 
-[node name="PermissionButton" type="Button" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="PermissionsVBoxContainer" type="VBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
-disabled = true
-text = "Request Notification Permission"
 
-[node name="ActionHBoxContainer" type="HBoxContainer" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer"]
+[node name="RequestPermissionLabel" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer"]
+layout_mode = 2
+text = "Request Permission"
+horizontal_alignment = 1
+
+[node name="PermissionHBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NotificationPermissionButton" type="Button" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Post Notifications"
+
+[node name="OptimizationPermissionButton" type="Button" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Optimization Exemption
+"
+
+[node name="ActionHBoxContainer" type="HBoxContainer" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 26
 
-[node name="MenuButton" type="MenuButton" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
+[node name="MenuButton" type="MenuButton" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
 layout_mode = 2
 text = "Notification ID v"
 item_count = 10
@@ -153,33 +177,36 @@ popup/item_8/id = 9
 popup/item_9/text = "10"
 popup/item_9/id = 10
 
-[node name="IdValueLabel" type="Label" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
+[node name="IdValueLabel" type="Label" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 
-[node name="SendButton" type="Button" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
+[node name="SendButton" type="Button" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
 layout_mode = 2
 text = "Send"
 
-[node name="CancelButton" type="Button" parent="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
+[node name="CancelButton" type="Button" parent="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer"]
 layout_mode = 2
 text = "Cancel"
 
-[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/CenterContainer/VBoxContainer"]
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/MainContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
 
 [node name="NotificationScheduler" type="Node" parent="."]
 script = ExtResource("3_guixi")
 
-[connection signal="value_changed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/HBoxContainer/DelayHSlider" to="." method="_on_delay_h_slider_value_changed"]
-[connection signal="value_changed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalHSlider" to="." method="_on_interval_h_slider_value_changed"]
-[connection signal="value_changed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/BadgeCountHSlider" to="." method="_on_badge_count_h_slider_value_changed"]
-[connection signal="pressed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/PermissionButton" to="." method="_on_permission_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/SendButton" to="." method="_on_send_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/CenterContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="value_changed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/HBoxContainer/DelayHSlider" to="." method="_on_delay_h_slider_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/IntervalHBoxContainer/IntervalHSlider" to="." method="_on_interval_h_slider_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/BadgeCountHBoxContainer/BadgeCountHSlider" to="." method="_on_badge_count_h_slider_value_changed"]
+[connection signal="pressed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer/NotificationPermissionButton" to="." method="_on_notification_permission_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/PermissionsVBoxContainer/PermissionHBoxContainer/OptimizationPermissionButton" to="." method="_on_optimization_permission_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/SendButton" to="." method="_on_send_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainContainer/VBoxContainer/VBoxContainer/ActionHBoxContainer/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="battery_optimizations_permission_denied" from="NotificationScheduler" to="." method="_on_notification_scheduler_battery_optimizations_permission_denied"]
+[connection signal="battery_optimizations_permission_granted" from="NotificationScheduler" to="." method="_on_notification_scheduler_battery_optimizations_permission_granted"]
 [connection signal="initialization_completed" from="NotificationScheduler" to="." method="_on_notification_scheduler_initialization_completed"]
 [connection signal="notification_dismissed" from="NotificationScheduler" to="." method="_on_notification_scheduler_notification_dismissed"]
 [connection signal="notification_opened" from="NotificationScheduler" to="." method="_on_notification_scheduler_notification_opened"]
-[connection signal="permission_denied" from="NotificationScheduler" to="." method="_on_notification_scheduler_permission_denied"]
-[connection signal="permission_granted" from="NotificationScheduler" to="." method="_on_notification_scheduler_permission_granted"]
+[connection signal="post_notifications_permission_denied" from="NotificationScheduler" to="." method="_on_notification_scheduler_post_notifications_permission_denied"]
+[connection signal="post_notifications_permission_granted" from="NotificationScheduler" to="." method="_on_notification_scheduler_post_notifications_permission_granted"]
