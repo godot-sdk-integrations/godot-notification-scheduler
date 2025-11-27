@@ -32,6 +32,11 @@ public class NotificationReceiver extends BroadcastReceiver {
 		} else if (intent.hasExtra(NotificationData.DATA_KEY_ID)) {
 			NotificationData notificationData = new NotificationData(intent);
 
+			// Clean up storage for non-repeating notifications
+			if (!notificationData.hasInterval()) {
+				NotificationSchedulerPlugin.removeScheduledNotification(context, notificationData.getId());
+			}
+
 			Notification notification = notificationData.buildNotification(context);
 			if (notification != null) {
 				NotificationManagerCompat.from(context).notify(notificationData.getId(), notification);

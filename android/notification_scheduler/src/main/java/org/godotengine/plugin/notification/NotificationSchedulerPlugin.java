@@ -46,7 +46,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class NotificationSchedulerPlugin extends GodotPlugin {
@@ -65,6 +67,8 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 
 	private static final String PREF_NAME = CLASS_NAME + "_prefs";
 	private static final String KEY_PENDING_DISMISSED = "pending_dismissed_ids";
+	private static final String KEY_SCHEDULED_NOTIFICATIONS = "scheduled_notifications";
+	private static final String DATA_KEY_FIRE_TIME = "fire_time_ms"; // Internal key for absolute time
 
 	private static final int POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 11803;
 	private static final int BATTERY_OPTIMIZATIONS_PERMISSION_REQUEST_CODE = 11804;
@@ -150,10 +154,17 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		Log.d(LOG_TAG, "schedule():: notification id: " + notificationData.getId());
 
 		if (notificationData.isValid()) {
+			// Calculate absolute fire time for persistence
+			long fireTime = calculateTimeAfterDelay(notificationData.getDelay());
+			
+			// Persist the notification data
+			saveScheduledNotification(activity, notificationData, fireTime);
+
+			// Schedule the alarm
 			if (notificationData.hasInterval()) {
-				scheduleRepeatingNotification(activity, notificationData);
+				scheduleRepeatingNotification(activity, notificationData, fireTime);
 			} else {
-				scheduleNotification(activity, notificationData);
+				scheduleNotification(activity, notificationData, fireTime);
 			}
 		} else {
 			Log.e(LOG_TAG, "schedule(): invalid notification data object");
@@ -175,6 +186,10 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 			return Error.ERR_UNCONFIGURED.toNativeValue();
 		}
 
+		// Remove from persistence
+		removeScheduledNotification(activity, notificationId);
+		
+		// Cancel alarm
 		cancelNotification(activity, notificationId);
 		Log.d(LOG_TAG, "cancel():: notification id: " + notificationId);
 
@@ -513,6 +528,89 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 	}
 
 	/**
+	 * Saves the notification data to SharedPreferences so it can be restored on reboot.
+	 */
+	private static void saveScheduledNotification(Context context, NotificationData data, long fireTime) {
+		try {
+			SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+			JSONObject json = new JSONObject(data.getRawData());
+			
+			// Inject the absolute fire time into the JSON so we know when it was supposed to fire
+			json.put(DATA_KEY_FIRE_TIME, fireTime);
+
+			String jsonString = json.toString();
+			
+			// Store in a separate shared prefs map: key=ID, value=JSON
+			SharedPreferences schedulePrefs = context.getSharedPreferences(KEY_SCHEDULED_NOTIFICATIONS, Context.MODE_PRIVATE);
+			schedulePrefs.edit().putString(String.valueOf(data.getId()), jsonString).apply();
+			
+			Log.d(LOG_TAG, "Persisted notification " + data.getId() + " for reboot handling.");
+		} catch (JSONException e) {
+			Log.e(LOG_TAG, "Failed to save scheduled notification: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Removes a notification from persistence (called when cancelled or fired).
+	 */
+	public static void removeScheduledNotification(Context context, int notificationId) {
+		SharedPreferences schedulePrefs = context.getSharedPreferences(KEY_SCHEDULED_NOTIFICATIONS, Context.MODE_PRIVATE);
+		if (schedulePrefs.contains(String.valueOf(notificationId))) {
+			schedulePrefs.edit().remove(String.valueOf(notificationId)).apply();
+			Log.d(LOG_TAG, "Removed notification " + notificationId + " from persistence.");
+		}
+	}
+
+	/**
+	 * Called by BootReceiver to restore alarms.
+	 */
+	public static void rescheduleAll(Context context) {
+		SharedPreferences schedulePrefs = context.getSharedPreferences(KEY_SCHEDULED_NOTIFICATIONS, Context.MODE_PRIVATE);
+		Map<String, ?> allEntries = schedulePrefs.getAll();
+
+		if (allEntries.isEmpty()) {
+			Log.i(LOG_TAG, "No scheduled notifications to restore.");
+			return;
+		}
+
+		for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+			try {
+				String jsonString = (String) entry.getValue();
+				JSONObject json = new JSONObject(jsonString);
+				
+				// Extract the absolute fire time we saved earlier
+				long fireTime = json.optLong(DATA_KEY_FIRE_TIME, -1);
+				
+				// Reconstruct data
+				NotificationData data = new NotificationData(json);
+				
+				if (!data.isValid() || fireTime == -1) {
+					// Cleanup invalid data
+					removeScheduledNotification(context, Integer.parseInt(entry.getKey()));
+					continue;
+				}
+
+				if (data.hasInterval()) {
+					scheduleRepeatingNotification(context, data, fireTime);
+				} else {
+					// Check if the time has already passed for a one-time notification
+					if (System.currentTimeMillis() > fireTime) {
+						Log.w(LOG_TAG, "Notification " + data.getId() + " expired while device was off. Firing immediately.");
+						// Standard behavior for missed alarms is to fire immediately or discard. 
+						// setExact/set calls with past time usually trigger immediately.
+					}
+					scheduleNotification(context, data, fireTime);
+				}
+
+				Log.i(LOG_TAG, "Restored notification: " + data.getId());
+
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "Failed to restore notification: " + e.getMessage());
+			}
+		}
+	}
+
+	/**
 	 * Saves the full NotificationData as a JSON string to SharedPreferences.
 	 */
 	public static void saveDismissedDataToPrefs(Context context, NotificationData notificationData) {
@@ -536,50 +634,52 @@ public class NotificationSchedulerPlugin extends GodotPlugin {
 		}
 	}
 
-	private long calculateTimeAfterDelay(int delaySeconds) {
+	private static long calculateTimeAfterDelay(int delaySeconds) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.SECOND, delaySeconds);
 		return calendar.getTimeInMillis();
 	}
 
-	private void scheduleNotification(Activity activity, NotificationData notificationData) {
-		@SuppressWarnings("ConstantConditions") int notificationId = notificationData.getId();
+	private static void scheduleNotification(Context context, NotificationData notificationData, long fireTime) {
+		int notificationId = notificationData.getId();
 
-		Intent intent = new Intent(activity.getApplicationContext(), NotificationReceiver.class);
+		Intent intent = new Intent(context, NotificationReceiver.class);
 		notificationData.populateIntent(intent);
 
-		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-		long timeAfterDelay = calculateTimeAfterDelay(notificationData.getDelay());
-		PendingIntent pendingIntent = PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
+		AlarmManager alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
+		
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationId, intent,
 						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+			alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireTime, pendingIntent);
 		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, fireTime, pendingIntent);
 		} else {
-			alarmManager.set(AlarmManager.RTC_WAKEUP, timeAfterDelay, pendingIntent);
+			alarmManager.set(AlarmManager.RTC_WAKEUP, fireTime, pendingIntent);
 		}
-		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d.", notificationId, timeAfterDelay));
+		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d.", notificationId, fireTime));
 	}
 
-	private void scheduleRepeatingNotification(Activity activity, NotificationData notificationData) {
-		@SuppressWarnings("ConstantConditions") int notificationId = notificationData.getId();
+	private static void scheduleRepeatingNotification(Context context, NotificationData notificationData, long fireTime) {
+		int notificationId = notificationData.getId();
 
-		Intent intent = new Intent(activity.getApplicationContext(), NotificationReceiver.class);
+		Intent intent = new Intent(context, NotificationReceiver.class);
 		notificationData.populateIntent(intent);
 
-		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-		long timeAfterDelay = calculateTimeAfterDelay(notificationData.getDelay());
+		AlarmManager alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
+		
 		int intervalSeconds = notificationData.getInterval();
-		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, timeAfterDelay, intervalSeconds*1000L,
-				PendingIntent.getBroadcast(activity.getApplicationContext(), notificationId, intent,
+
+		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, fireTime, intervalSeconds * 1000L,
+				PendingIntent.getBroadcast(context, notificationId, intent,
 						PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d with %ds interval.", notificationId, timeAfterDelay, intervalSeconds));
+
+		Log.i(LOG_TAG, String.format("Scheduled notification '%d' to be delivered at %d with %ds interval.", notificationId, fireTime, intervalSeconds));
 	}
 
 	private void cancelNotification(Activity activity, int notificationId) {
 		Context context = activity.getApplicationContext();
-
 		// cancel alarm
 		AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
 		Intent intent = new Intent(context, NotificationReceiver.class);

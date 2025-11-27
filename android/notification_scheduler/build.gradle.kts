@@ -107,9 +107,10 @@ tasks {
 			"pluginNodeName" to (project.extra["pluginNodeName"] as String),
 			"pluginVersion" to (project.extra["pluginVersion"] as String),
 			"pluginPackage" to (project.extra["pluginPackageName"] as String),
-			"resultClass" to (project.extra["resultActivityClassPath"] as String),
-			"notificationReceiverClass" to (project.extra["notificationReceiverClassPath"] as String),
-			"cancelReceiverClass" to (project.extra["cancelReceiverClassPath"] as String),
+			"resultClass" to (project.extra["resultClass"] as String),
+			"notificationReceiverClass" to (project.extra["notificationReceiverClass"] as String),
+			"cancelReceiverClass" to (project.extra["cancelReceiverClass"] as String),
+			"bootReceiverClass" to (project.extra["bootReceiverClass"] as String),
 			"androidDependencies" to androidDependencies.joinToString(", ") { "\"$it\"" },
 			"iosPlatformVersion" to (project.extra["iosPlatformVersion"] as String),
 			"iosFrameworks" to (project.extra["iosFrameworks"] as String)

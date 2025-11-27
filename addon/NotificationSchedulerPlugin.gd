@@ -11,6 +11,7 @@ const PLUGIN_NAME: String = "@pluginName@"
 const RESULT_ACTIVITY_CLASS_PATH: String = "@resultClass@"
 const NOTIFICATION_RECEIVER_CLASS_PATH: String = "@notificationReceiverClass@"
 const CANCEL_RECEIVER_CLASS_PATH: String = "@cancelReceiverClass@"
+const BOOT_RECEIVER_CLASS_PATH: String = "@bootReceiverClass@"
 const ANDROID_DEPENDENCIES: Array = [ @androidDependencies@ ]
 const IOS_FRAMEWORKS: Array = [ @iosFrameworks@ ]
 const IOS_EMBEDDED_FRAMEWORKS: Array = [ @iosEmbeddedFrameworks@ ]
@@ -98,6 +99,18 @@ class AndroidExportPlugin extends EditorExportPlugin:
 				android:exported="true" />
 			""" % CANCEL_RECEIVER_CLASS_PATH
 
+		__contents += """
+			<receiver
+				android:name="%s"
+				android:enabled="true"
+				android:exported="false">
+				<intent-filter>
+					<action android:name="android.intent.action.BOOT_COMPLETED" />
+					<action android:name="android.intent.action.QUICKBOOT_POWERON" />
+				</intent-filter>
+			</receiver>
+			""" % BOOT_RECEIVER_CLASS_PATH
+
 		return __contents
 
 
@@ -113,7 +126,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 				return
 
 		if DirAccess.dir_exists_absolute(a_source_path):
-			var sub_paths: PackedStringArray = DirAccess.get_files_at(a_source_path) 
+			var sub_paths: PackedStringArray = DirAccess.get_files_at(a_source_path)
 			sub_paths.append_array(DirAccess.get_directories_at(a_source_path))
 
 			for sub_path in sub_paths:
