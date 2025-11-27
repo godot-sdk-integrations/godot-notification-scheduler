@@ -183,13 +183,13 @@ Error NotificationSchedulerPlugin::create_notification_channel(Dictionary dict) 
 		NSLog(@"NotificationSchedulerPlugin: ERROR: Plugin not initialized");
 		return ERR_UNCONFIGURED;
 	}
-	
+
 	NSLog(@"NotificationSchedulerPlugin create_notification_channel");
 	ChannelData* channelData = [[ChannelData alloc] initWithDictionary:dict];
 	UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-	
+
 	__block BOOL categoryExists = NO;
-	
+
 	// Fetch existing categories asynchronously
 	dispatch_semaphore_t sema = dispatch_semaphore_create(0);
 	[center getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull categories) {
@@ -201,21 +201,21 @@ Error NotificationSchedulerPlugin::create_notification_channel(Dictionary dict) 
 		}
 		dispatch_semaphore_signal(sema);
 	}];
-	
+
 	// Wait for completion
 	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-	
+
 	if (categoryExists) {
 		NSLog(@"NotificationSchedulerPlugin: Category '%@' already exists, skipping creation", channelData.channelId);
 		return ERR_ALREADY_EXISTS;
 	}
-	
+
 	// Create the category if it doesn't exist
 	UNNotificationCategory* newCategory = [UNNotificationCategory categoryWithIdentifier:channelData.channelId
-																actions:@[]
-																intentIdentifiers:@[]
-																options:UNNotificationCategoryOptionHiddenPreviewsShowTitle];
-	
+			actions:@[]
+			intentIdentifiers:@[]
+			options:UNNotificationCategoryOptionHiddenPreviewsShowTitle | UNNotificationCategoryOptionCustomDismissAction];
+
 	// Preserve existing categories while adding the new one
 	__block NSSet<UNNotificationCategory *> *updatedCategories;
 	sema = dispatch_semaphore_create(0);
@@ -226,9 +226,9 @@ Error NotificationSchedulerPlugin::create_notification_channel(Dictionary dict) 
 		dispatch_semaphore_signal(sema);
 	}];
 	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-	
+
 	[center setNotificationCategories:updatedCategories];
-	
+
 	return OK;
 }
 
