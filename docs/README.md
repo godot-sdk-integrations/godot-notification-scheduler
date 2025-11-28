@@ -15,6 +15,7 @@ A unified GDScript interface for scheduling **local notifications** on **Android
 - Schedule repeating notifications with intervals.
 - Manage notification channels and badges.
 - Handle permissions and user interactions via signals.
+- Plugin handles system restart allowing scheduled notifications to survive device reboots
 
 ---
 
